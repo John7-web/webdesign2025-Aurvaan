@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Majestic Red Panda</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+            color: #1e293b;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .container {
+            max-width: 800px;
+            background-color: #ffffff;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            padding: 2.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        .image-container {
+            position: relative;
+            width: 100%;
+            height: auto;
+            border-radius: 1rem;
+            overflow: hidden;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .image-container img {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+        }
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #334155;
+            margin-bottom: 1rem;
+        }
+        p {
+            font-size: 1rem;
+            line-height: 1.75;
+            margin-bottom: 2rem;
+        }
+        .link-group {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1rem;
+        }
+        .link-group a {
+            display: inline-block;
+            background-color: #6366f1;
+            color: #ffffff;
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px;
+            text-decoration: none;
+            font-weight: 700;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .link-group a:hover {
+            background-color: #4f46e5;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="image-container">
+        <!--
+            The image URL below is from a reliable source (Pexels) and is licensed for free use.
+            It's a great practice to use images from services that provide clear licensing terms.
+            A placeholder image is also provided as a fallback.
+        -->
+        <img src="https://images.pexels.com/photos/1019771/pexels-photo-1019771.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260" alt="A fluffy red panda sitting in a tree" onerror="this.onerror=null;this.src='https://placehold.co/800x600/6366f1/ffffff?text=Red+Panda';">
+    </div>
+
+    <h1 class="text-4xl font-bold">The Majestic Red Panda</h1>
+
+    <p class="text-base leading-relaxed">
+        The red panda ($Ailurus~fulgens$) is a small mammal native to the eastern Himalayas and southwestern China.
+        They are slightly larger than a domestic cat and are known for their reddish-brown fur, long shaggy tail, and waddling gait.
+        Despite their name, they are not closely related to the giant panda.
+        The red panda is listed as an endangered species, primarily due to habitat loss and fragmentation.
+    </p>
+
+    <div class="link-group">
+        <a href="https://en.wikipedia.org/wiki/Red_panda" target="_blank">Learn on Wikipedia</a>
+        <a href="https://nationalzoo.si.edu/animals/red-panda" target="_blank">National Zoo Fact Sheet</a>
+        <a href="https://redpandanetwork.org/" target="_blank">Red Panda Network</a>
+    </div>
+</div>
+
+</body>
+</html>
