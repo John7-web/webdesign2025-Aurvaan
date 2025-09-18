@@ -1,0 +1,143 @@
+<h1 align="center">t1a02-vibe-code-clean-Aurvaan.html</h1>
+you need to put the clean code here. No CSS, no confusing divs and paragraphs. Just as simple as possible webpage html. <br><br>
+If doing javascript, script are the varible sensibly named using camelCase "my var" etc don't use
+promises (.then) instead use async/await, no addEventListener unless necessary, get chatgpt to make
+ the changes. More changes... Only simple javascript nothing fancy.
+
+<br>
+<canvas id="gameCanvas" width="400" height="400"></canvas>
+    <div id="game-info">
+        Score: <span id="score">0</span>
+    </div>
+    <div id="game-over-message" style="display: none;">Game Over!</div>
+    <button id="startButton">Start Game</button>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const startButton = document.getElementById('startButton');
+        const scoreSpan = document.getElementById('score');
+        const gameOverMessage = document.getElementById('game-over-message');
+        const gridSize = 20;
+        let snake = [], food = {}, direction = 'right', score = 0, isGameOver = false, gameLoopInterval;
+        // Reset and start the game
+        const startGame = () => {
+            snake = [{ x: 10, y: 10 }]; // Start snake in the center
+            food = generateFood();
+            direction = 'right';
+            score = 0;
+            isGameOver = false;
+            scoreSpan.textContent = score;
+            gameOverMessage.style.display = 'none';
+            startButton.style.display = 'none';
+            if (gameLoopInterval) clearInterval(gameLoopInterval);
+            gameLoopInterval = setInterval(gameLoop, 100);
+        };
+        // Generate a new random position for the food
+        const generateFood = () => {
+            let newFoodPosition;
+            do {
+                newFoodPosition = {
+                    x: Math.floor(Math.random() * (canvas.width / gridSize)),
+                    y: Math.floor(Math.random() * (canvas.height / gridSize))
+                };
+            } while (isFoodOnSnake(newFoodPosition));
+            return newFoodPosition;
+        };
+        // Check if the new food position is on the snake's body
+        const isFoodOnSnake = (pos) => {
+            return snake.some(segment => segment.x === pos.x && segment.y === pos.y);
+        };
+        // Draw a single segment of the snake or food
+        const drawSegment = (x, y, color) => {
+            ctx.fillStyle = color;
+            ctx.fillRect(x * gridSize, y * gridSize, gridSize, gridSize);
+            ctx.strokeStyle = '#2d3748';
+            ctx.strokeRect(x * gridSize, y * gridSize, gridSize, gridSize);
+        };
+        // Draw the entire game board, snake, and food
+        const draw = () => {
+            // Clear the canvas
+            ctx.fillStyle = '#2d3748';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            // Draw the food
+            drawSegment(food.x, food.y, '#E4080A');
+            // Draw the snake
+            snake.forEach((segment, index) => {
+                const color = index === 0 ? '#48bb78' : '#68d391';
+                drawSegment(segment.x, segment.y, color);
+            });
+        };
+        // Update the snake's position and check for collisions
+        const update = () => {
+            if (isGameOver) return;
+            // Create a new head based on current direction
+            const head = { x: snake[0].x, y: snake[0].y };
+            switch (direction) {
+                case 'up': head.y--; break;
+                case 'down': head.y++; break;
+                case 'left': head.x--; break;
+                case 'right': head.x++; break;
+            }
+            // Check for collision with walls
+            if (head.x < 0 || head.x >= canvas.width / gridSize || head.y < 0 || head.y >= canvas.height / gridSize) {
+                endGame();
+                return;
+            }
+            // Check for self-collision
+            if (isFoodOnSnake(head)) { // This function also works for self-collision check
+                endGame();
+                return;
+            }
+            // Add new head to the beginning of the snake
+            snake.unshift(head);
+            // Check if the snake ate the food
+            if (head.x === food.x && head.y === food.y) {
+                score++;
+                scoreSpan.textContent = score;
+                food = generateFood();
+            } else {
+                // If not, remove the tail
+                snake.pop();
+            }
+        };
+        // Main game loop
+        const gameLoop = () => {
+            update();
+            draw();
+        };
+        // End the game
+        const endGame = () => {
+            isGameOver = true;
+            clearInterval(gameLoopInterval);
+            gameOverMessage.style.display = 'block';
+            startButton.style.display = 'block';
+            startButton.textContent = 'Play Again';
+        };
+        // Keyboard event listener for direction changes
+        document.addEventListener('keydown', e => {
+            switch (e.key) {
+                case 'ArrowUp':
+                    if (direction !== 'down') direction = 'up';
+                    break;
+                case 'ArrowDown':
+                    if (direction !== 'up') direction = 'down';
+                    break;
+                case 'ArrowLeft':
+                    if (direction !== 'right') direction = 'left';
+                    break;
+                case 'ArrowRight':
+                    if (direction !== 'left') direction = 'right';
+                    break;
+            }
+        });
+        // Start button listener
+        startButton.addEventListener('click', startGame);
+        // Initial draw
+        draw();
+    </script>
+ <br> <br>
+ Here is the original vibecode <br>
+<iframe width="100%" height="400" src="t1a02-vibe-code-clean-Aurvaan.html"></iframe>
+<br> <br>
+Final comments: Any observation about your code compared to the vibecode<br>
+    
