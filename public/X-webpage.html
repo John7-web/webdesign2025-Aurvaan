@@ -6,7 +6,7 @@
 <h1 align="center"><img src="Whale1-removebg-preview.png" width="500" height="500"></h1>
 </div></div></div>
 <div id="horse1">
-<h1 align="right"><img src="Horse.png" id=horse width="500" height="500"></h1>
+<h1 align="left"><img src="Horse.png" id=horse width="500" height="500"></h1>
 </div>
 <div id="horse2">
 <h1 align="center"><img src="HorseFace.png" width="1000" height="1000"></h1>
@@ -20,9 +20,9 @@
   
 }
 #horse1{
-   position: relative;
+   position: absolute;
   animation-name: HorseAnimation;
-  animation-duration: 3s;
+  animation-duration: 2s;
   animation-direction: reverse;  
   animation-iteration-count: 1;
 }
@@ -34,8 +34,8 @@
   100% {left:0px; top:0px;}
 }
 @keyframes HorseAnimation{
-  0% {left: 0;}
-  100%{left: 1000px;}
+  to{left: 3000px;}
+  from{left: 1000px;}
 }
 #horse2{position: fixed;
 animation-name:Horse2 ;
