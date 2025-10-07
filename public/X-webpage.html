@@ -7,6 +7,7 @@
 <h1 align="center" id="horse2"><img src="HorseFace.png" width="1000" height="1000"></h1>
 <h1 align="center" id="explosion"><img src="explosion.gif" width="1000" height="1000"></h1>
 </div>
+<body>
 <style>#Whale1{  
  position: relative;
  animation-name: myAnimation;
@@ -50,6 +51,7 @@ right: 0;
 left: 0;
 bottom: 0;
 z-index: 2;
+opacity: 0%;
 }
 #segway{
 position: relative;
@@ -57,13 +59,12 @@ animation-name: Segway;
 animation-duration: 6s;
 animation-iteration-count: 1;
 animation-direction: reverse;
-animation-delay:8.8s;
+animation-delay:10s;
 z-index: 2;
-top: -825px;
+top: 0;
 right: 400px;
 left: 0;
 bottom: 0;
-opacity: 0%;
 }
 @keyframes myAnimation {
   0%   {left:0px; top:0px;}
@@ -73,7 +74,8 @@ opacity: 0%;
   100% {left:0px; top:0px;}
 }
 @keyframes HorseAnimation{
-  0%{opacity: 100%;}
+  100%{opacity: 0%;}
+   0%{opacity: 100%;}
   0%{left: 70px;}
   100%{left: 1100px;}
 }
@@ -86,14 +88,16 @@ opacity: 0%;
    100%{opacity: 100%;}
 }
 @keyframes Segway{
-  0%{opacity: 100%;}
-  0%{left: -1000px;}
-  100%{left: 0;}
+  0%{left: -1000px; top: -825px;}
+  100%{left: 0; top: -825px;}
 } 
 body{
  background-image: url(https://cdn.wallpapersafari.com/98/65/JT1jNk.jpg);
-}
+ height: 100%;
+ overflow: hidden;}
 </style>
+</body>
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="https://www.w3schools.com/w3css/5/w3.css">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
