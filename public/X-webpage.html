@@ -6,14 +6,16 @@
 <h1 align="center" id="segway"><img src="horsesegway.png" width="600" height="600"></h1>
 <h1 align="center" id="horse2"><img src="HorseFace.png" width="1000" height="1000"></h1>
 <h1 align="center" id="explosion"><img src="explosion.gif" width="1000" height="1000"></h1>
-</div>
+<h1 align="center" id="lowtier"><img src="lowtiergod.png" width="1000" height="1000"></h1>
+<h1 align="center" id="lighting"><img src="blue.GIF" width="1000" height="1000"></h1>
 <body>
 <style>#Whale1{  
  position: relative;
  animation-name: myAnimation;
-  animation-duration: 7s;
+  animation-duration: 8s;
   animation-direction: reverse;  
-  animation-iteration-count: 999;
+  animation-iteration-count: 2;
+  z-index: 1;
 }
 #horse1{
    position: relative;
@@ -66,6 +68,35 @@ right: 400px;
 left: 0;
 bottom: 0;
 }
+#lowtier{
+  position: fixed;
+  animation-name: LowTier;
+  animation-duration: 5s;
+  animation-direction: reverse;
+  animation-iteration-count: 1;
+  z-index: 3;
+  opacity: 0%;
+  animation-delay: 0s;
+  top: 0;
+right: 0;
+left: 0;
+bottom: 0;
+  animation-delay: 16s;
+}
+#lighting{
+  position: fixed;
+  z-index: 4;
+  top: 0;
+right: 0;
+left: 0;
+bottom: 0;
+  animation-name:LowTier;
+  animation-duration: 5s;
+  animation-direction: reverse;
+  animation-iteration-count: 1;
+  opacity: 0%;
+  animation-delay: 16s;
+}
 @keyframes myAnimation {
   0%   {left:0px; top:0px;}
   25%  {left:500px; top:0px;}
@@ -91,6 +122,10 @@ bottom: 0;
   0%{left: -1000px; top: -825px;}
   100%{left: 0; top: -825px;}
 } 
+@keyframes LowTier{
+  100%{opacity: 0%;}
+  0%{opacity: 100%;}
+}
 body{
  background-image: url(https://cdn.wallpapersafari.com/98/65/JT1jNk.jpg);
  height: 100%;
