@@ -8,13 +8,14 @@
 <h1 align="center" id="explosion"><img src="explosion.gif" width="1000" height="1000"></h1>
 <h1 align="center" id="lowtier"><img src="lowtiergod.png" width="1000" height="1000"></h1>
 <h1 align="center" id="lighting"><img src="blue.GIF" width="1000" height="1000"></h1>
+<h1 align="center" id="skateboard"><img src="horseskateboard.png" width="1000" height="800"></h1>
 <body>
 <style>#Whale1{  
  position: relative;
  animation-name: myAnimation;
   animation-duration: 8s;
   animation-direction: reverse;  
-  animation-iteration-count: 2;
+  animation-iteration-count: 99;
   z-index: 1;
 }
 #horse1{
@@ -97,6 +98,18 @@ bottom: 0;
   opacity: 0%;
   animation-delay: 16s;
 }
+#skateboard{
+  z-index: 5;
+  position: relative;
+  top: -1500;
+  left: -1200px;
+  animation-name: SkateBoard;
+  animation-duration: 12s;
+  animation-direction: reverse;
+  animation-iteration-count: 1;
+  animation-delay: 21s;
+}
+
 @keyframes myAnimation {
   0%   {left:0px; top:0px;}
   25%  {left:500px; top:0px;}
@@ -126,10 +139,14 @@ bottom: 0;
   100%{opacity: 0%;}
   0%{opacity: 100%;}
 }
+@keyframes SkateBoard{
+  100%{left:-1200;}
+  0%{left: 2300px}
+}
 body{
  background-image: url(https://cdn.wallpapersafari.com/98/65/JT1jNk.jpg);
  height: 100%;
- overflow: hidden;}
+ overflow: visible;}
 </style>
 </body>
 
