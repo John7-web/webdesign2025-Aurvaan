@@ -32,6 +32,10 @@
             font-size: 1rem;
             text-align: center;
             z-index: 10;
+            /* Added flex for internal layout of text and button */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
         canvas {
             display: block;
@@ -41,23 +45,30 @@
 <body>
 
     <div id="info-box" class="shadow-xl">
-        <strong>3D Physics Horse (Nano, but Heavy!)</strong> - Click/Tap and Drag to Pick Up and Throw!
+    
+        <!-- NEW BUTTON ADDED HERE -->
+        <button id="throw-button" onclick="throwAllHorses()" class="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow-lg transition duration-200 transform hover:scale-105 active:scale-95">
+            LAUNCH THE HERD!
+        </button>
     </div>
 
     <script>
         // --- Global Variables ---
         let scene, camera, renderer;
-        let world, horseBody, horseMesh, groundBody, groundMesh;
+        let world, groundBody, groundMesh;
         let raycaster, mouse, plane;
         let isDragging = false;
         let constraint, mouseBody;
+        let draggedHorseBody = null; // Track the horse currently being dragged
+        let horseBodies = []; // Array to hold all Cannon bodies
+        let horseMeshes = []; // Array to hold all Three meshes
+        
         let clock = new THREE.Clock();
         const timeStep = 1 / 60;
 
         // Velocity tracking for throwing
         let lastMousePos = new THREE.Vector2();
         let currentMousePos = new THREE.Vector2();
-        let lastUpdateTime = Date.now();
         const velocityHistory = [];
 
         // --- Utility Functions ---
@@ -79,10 +90,11 @@
 
         /**
          * Calculates a throwing impulse based on the change in mouse position.
+         * Uses the mass of the currently dragged horse.
          * @returns {THREE.Vector3} The calculated impulse vector.
          */
         function calculateThrowImpulse() {
-            if (velocityHistory.length < 2) return new THREE.Vector3(0, 0, 0);
+            if (velocityHistory.length < 2 || !draggedHorseBody) return new THREE.Vector3(0, 0, 0);
 
             // Simple average velocity over the last few frames
             let totalVelocity = new THREE.Vector3(0, 0, 0);
@@ -102,9 +114,41 @@
             const avgVelocity = totalVelocity.divideScalar(velocityHistory.length - 1);
 
             // Apply a multiplier for a satisfying throw
-            const impulseMultiplier = 5;
-            return avgVelocity.multiplyScalar(horseBody.mass * impulseMultiplier);
+            const impulseMultiplier = 3; // Weak throwing power
+            return avgVelocity.multiplyScalar(draggedHorseBody.mass * impulseMultiplier);
         }
+
+        /**
+         * Applies a large, random impulse to all horses, throwing them across the scene.
+         */
+        function throwAllHorses() {
+            const forceMagnitude = 30; // Strong magnitude for mass=1.0 horses
+            horseBodies.forEach(body => {
+                // Generate a random vector for direction
+                const randomX = (Math.random() - 0.5) * 2; // -1 to 1
+                const randomY = Math.random() * 1.5 + 1; // 1.0 to 2.5 (mostly upwards)
+                const randomZ = (Math.random() - 0.5) * 2; // -1 to 1
+
+                const direction = new THREE.Vector3(randomX, randomY, randomZ).normalize();
+                
+                // Scale the direction by the desired magnitude
+                const impulseVector = direction.multiplyScalar(forceMagnitude);
+
+                // Apply the impulse at the center of mass
+                body.applyImpulse(
+                    new CANNON.Vec3(impulseVector.x, impulseVector.y, impulseVector.z), 
+                    body.position
+                );
+                
+                // Also give a random angular velocity for spinning chaos
+                body.angularVelocity.set(
+                    (Math.random() - 0.5) * 15, // Increased spin for chaos
+                    (Math.random() - 0.5) * 15,
+                    (Math.random() - 0.5) * 15
+                );
+            });
+        }
+
 
         // --- Setup Functions ---
 
@@ -158,14 +202,15 @@
             world = new CANNON.World();
             world.gravity.set(0, -9.82, 0);
             world.broadphase = new CANNON.NaiveBroadphase();
-            world.solver.iterations = 10;
+            // Increased solver iterations from 10 to 20 for maximum contact resolution accuracy
+            world.solver.iterations = 20; 
 
-            // Materials (Optional for friction/restitution, but good practice)
+            // Materials 
             const groundMaterial = new CANNON.Material('groundMaterial');
             const horseMaterial = new CANNON.Material('horseMaterial');
             const horseGroundContact = new CANNON.ContactMaterial(horseMaterial, groundMaterial, {
                 friction: 0.4,
-                restitution: 0.6 // Bounciness
+                restitution: 0.7 // Bounciness
             });
             world.addContactMaterial(horseGroundContact);
 
@@ -190,77 +235,89 @@
             world.addBody(mouseBody);
         }
 
-        function createHorse() {
-            // 1. Cannon Body (Box shape for collision, extremely small)
-            const horseSize = new CANNON.Vec3(0.01, 0.01, 0.01); 
+        /**
+         * Creates a new horse, adds it to the physics world, and stores its body and mesh.
+         * @param {number} x Initial X position
+         * @param {number} y Initial Y position
+         * @param {number} z Initial Z position
+         */
+        function addHorse(x, y, z) {
+            // 1. Cannon Body (Box shape for collision)
+            const horseSize = new CANNON.Vec3(0.02, 0.02, 0.02); 
             const horseShape = new CANNON.Box(horseSize);
-            // Mass increased to 1.0 (much heavier than previous 0.001)
-            horseBody = new CANNON.Body({ mass: 1.0, shape: horseShape, position: new CANNON.Vec3(0, 5, 0) });
-            horseBody.linearDamping = 0.5; // To slow down movements over time
-            world.addBody(horseBody);
+            // Mass is 1.0 (heavy)
+            const body = new CANNON.Body({ mass: 1.0, shape: horseShape, position: new CANNON.Vec3(x, y, z) });
+            body.linearDamping = 0.3; // Less air drag
+            body.angularDamping = 0.5; // More rotational stability
+            world.addBody(body);
+            horseBodies.push(body);
 
             // 2. Three Mesh (Loading the GLTF Model)
-            // Use a Group to hold the loaded model so we can easily synchronize position/rotation
-            horseMesh = new THREE.Group(); 
-            scene.add(horseMesh);
-            horseMesh.visible = false; // Hide until model loads
+            const meshGroup = new THREE.Group(); 
+            scene.add(meshGroup);
+            meshGroup.visible = false; 
+            horseMeshes.push(meshGroup);
 
-            const loader = new THREE.GLTFLoader();
+            // Map the mesh group back to its physics body for easy lookup during dragging
+            meshGroup.userData.physicsBody = body;
             
-            // --- IMPORTANT ---
-            // Placeholder URL: Replace this with the actual URL of your 'ui88n0b8gtmo-standinghorse' file (.glb or .gltf)
+            const loader = new THREE.GLTFLoader();
             const MODEL_URL = 'https://cdn.jsdelivr.net/gh/mrdoob/three.js@dev/examples/models/gltf/Horse.glb'; 
 
             loader.load(
                 MODEL_URL,
                 function (gltf) {
                     const model = gltf.scene;
-
-                    // Apply shadow settings to all parts of the loaded model
                     model.traverse((child) => {
                         if (child.isMesh) {
                             child.castShadow = true;
-                            // Ensure the materials are suitable for lighting
                             child.material.side = THREE.DoubleSide; 
                         }
                     });
 
-                    // Adjust scale and position to fit the physics box (Extremely small visual size)
+                    // Visual scale (extremely tiny)
                     const scaleFactor = 0.02; 
                     model.scale.set(scaleFactor, scaleFactor, scaleFactor);
                     
                     // Move the model down so its base aligns with the physics body's center (Y=0)
                     model.position.y = -horseSize.y; 
 
-                    // Clear any previous fallback mesh and add the new model
-                    horseMesh.clear();
-                    horseMesh.add(model);
-                    horseMesh.visible = true;
+                    meshGroup.clear();
+                    meshGroup.add(model);
+                    meshGroup.visible = true;
                     
-                    // Initial sync
-                    horseMesh.position.copy(horseBody.position);
-                    console.log("Horse model loaded successfully!");
-
+                    meshGroup.position.copy(body.position);
                 },
-                // Optional: called while loading is progressing
-                function (xhr) {
-                    console.log('Model loading: ' + (xhr.loaded / xhr.total * 100).toFixed(0) + '%');
-                },
-                // Optional: called when loading has errors
+                undefined, // Progress is ignored for simplicity
                 function (error) {
-                    console.error('An error happened loading the model:', error);
+                    console.error('An error happened loading the model, using fallback:', error);
                     // Fallback to the original simple box if the model fails to load
                     const fallbackGeometry = new THREE.BoxGeometry(horseSize.x * 2, horseSize.y * 2, horseSize.z * 2);
                     const fallbackMaterial = new THREE.MeshPhongMaterial({ color: 0xcc0000, shininess: 50 });
                     const fallbackMesh = new THREE.Mesh(fallbackGeometry, fallbackMaterial);
                     fallbackMesh.castShadow = true;
                     
-                    horseMesh.clear();
-                    horseMesh.add(fallbackMesh);
-                    horseMesh.visible = true;
-                    console.log("Using fallback box mesh due to load failure.");
+                    meshGroup.clear();
+                    meshGroup.add(fallbackMesh);
+                    meshGroup.visible = true;
                 }
             );
+        }
+
+        function createMultipleHorses() {
+            // Spawn 5 initial horses
+            addHorse(0, 5, 0);
+            addHorse(2, 6, -1);
+            addHorse(-2, 7, 1);
+            addHorse(1, 8, 3);
+            addHorse(-3, 9, -2);
+            
+            // Spawn 5 additional horses (New)
+            addHorse(4, 5.5, 2);
+            addHorse(-4, 6.5, -3);
+            addHorse(3, 7.5, -4);
+            addHorse(-1, 8.5, 4);
+            addHorse(0, 9.5, 5);
         }
 
         // --- Event Handlers ---
@@ -273,38 +330,50 @@
 
         function onPointerDown(event) {
             event.preventDefault();
+            draggedHorseBody = null;
+            isDragging = false;
 
             // 1. Update mouse coordinates
             mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
             mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
-            // 2. Raycast to find the horse (recursive check for GLTF components)
+            // 2. Raycast to find any horse (intersects the array of all horse meshes)
             raycaster.setFromCamera(mouse, camera);
-            const intersects = raycaster.intersectObject(horseMesh, true); 
+            const intersects = raycaster.intersectObjects(horseMeshes, true); 
 
             if (intersects.length > 0) {
                 isDragging = true;
                 const intersectionPoint = intersects[0].point;
                 
+                // Traverse up the parent hierarchy to find the main mesh group (which stores the physics body reference)
+                let draggedMesh = intersects[0].object;
+                while (draggedMesh && !draggedMesh.userData.physicsBody && draggedMesh.parent !== scene) {
+                    draggedMesh = draggedMesh.parent;
+                }
+                
+                // Assign the physics body from the mesh's userData
+                draggedHorseBody = draggedMesh.userData.physicsBody;
+
+                if (!draggedHorseBody) {
+                    isDragging = false;
+                    return;
+                }
+                
                 // 3. Set the mouse body position to the intersection point
                 mouseBody.position.copy(intersectionPoint);
 
-                // 4. Create a point-to-point constraint between the horse and the mouse body
-                // Anchor points in local coordinates
-                const anchorA = new CANNON.Vec3().copy(intersectionPoint).vsub(horseBody.position);
-                const anchorB = new CANNON.Vec3(0, 0, 0); // Anchor is at the center of the mouse body
-
-                // Convert anchorA from world to local coordinates of the horse body
-                const localPivot = horseBody.pointToLocalFrame(anchorA);
+                // 4. Create a point-to-point constraint between the dragged horse and the mouse body
+                const anchorA = new CANNON.Vec3().copy(intersectionPoint).vsub(draggedHorseBody.position);
+                const anchorB = new CANNON.Vec3(0, 0, 0); 
+                const localPivot = draggedHorseBody.pointToLocalFrame(anchorA);
                 
-                constraint = new CANNON.PointToPointConstraint(horseBody, localPivot, mouseBody, anchorB);
+                constraint = new CANNON.PointToPointConstraint(draggedHorseBody, localPivot, mouseBody, anchorB);
                 world.addConstraint(constraint);
 
                 // Stop the horse's movement when grabbed
-                horseBody.velocity.set(0, 0, 0);
-                horseBody.angularVelocity.set(0, 0, 0);
+                draggedHorseBody.velocity.set(0, 0, 0);
+                draggedHorseBody.angularVelocity.set(0, 0, 0);
 
-                // Clear history for velocity calculation
                 velocityHistory.length = 0;
             }
         }
@@ -339,18 +408,18 @@
         }
 
         function onPointerUp(event) {
-            if (isDragging && constraint) {
+            if (isDragging && constraint && draggedHorseBody) {
                 isDragging = false;
 
                 // 1. Calculate and apply throwing impulse
                 const impulse = calculateThrowImpulse();
                 
-                // Apply the impulse at the center of mass
-                horseBody.applyImpulse(new CANNON.Vec3(impulse.x, impulse.y, impulse.z), horseBody.position);
+                draggedHorseBody.applyImpulse(new CANNON.Vec3(impulse.x, impulse.y, impulse.z), draggedHorseBody.position);
 
-                // 2. Remove the constraint
+                // 2. Remove the constraint and clear the dragged horse reference
                 world.removeConstraint(constraint);
                 constraint = null;
+                draggedHorseBody = null; 
             }
         }
 
@@ -361,11 +430,18 @@
 
             // Physics step
             const delta = clock.getDelta();
-            world.step(timeStep, delta, 3); // Update physics world
+            // Using 10 maxSubSteps for improved stability with small, heavy bodies
+            world.step(timeStep, delta, 10); 
 
-            // Synchronize Three.js mesh (Group) with Cannon.js body
-            horseMesh.position.copy(horseBody.position);
-            horseMesh.quaternion.copy(horseBody.quaternion);
+            // Synchronize all Three.js meshes with their corresponding Cannon.js bodies
+            for (let i = 0; i < horseBodies.length; i++) {
+                const body = horseBodies[i];
+                const mesh = horseMeshes[i];
+                if (mesh.visible) {
+                    mesh.position.copy(body.position);
+                    mesh.quaternion.copy(body.quaternion);
+                }
+            }
 
             // If dragging, update the plane position to follow the horse
             if (isDragging && plane) {
@@ -392,7 +468,7 @@
         window.onload = function () {
             initThree();
             initCannon();
-            createHorse();
+            createMultipleHorses();
             animate();
         };
 
