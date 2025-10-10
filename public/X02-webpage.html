@@ -17,7 +17,7 @@
             margin: 0;
             overflow: hidden;
             font-family: 'Inter', sans-serif;
-            background-color: #1a1a2e; /* Dark background */
+            background-color: #87ceeb; /* Light blue background for the sky */
         }
         #info-box {
             position: absolute;
@@ -39,13 +39,14 @@
         }
         canvas {
             display: block;
+            cursor: grab; /* Hint that the scene is draggable */
         }
     </style>
 </head>
 <body>
 
     <div id="info-box" class="shadow-xl">
-    
+        <p class="mb-3"><strong>10 Tiny, Heavy Physics Horses!</strong> - Click/Tap and Drag to Pick Up and Throw them. **Click and drag empty space to rotate the camera.**</p>
         <!-- NEW BUTTON ADDED HERE -->
         <button id="throw-button" onclick="throwAllHorses()" class="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow-lg transition duration-200 transform hover:scale-105 active:scale-95">
             LAUNCH THE HERD!
@@ -57,7 +58,7 @@
         let scene, camera, renderer;
         let world, groundBody, groundMesh;
         let raycaster, mouse, plane;
-        let isDragging = false;
+        let isDragging = false; // For dragging horses
         let constraint, mouseBody;
         let draggedHorseBody = null; // Track the horse currently being dragged
         let horseBodies = []; // Array to hold all Cannon bodies
@@ -70,6 +71,14 @@
         let lastMousePos = new THREE.Vector2();
         let currentMousePos = new THREE.Vector2();
         const velocityHistory = [];
+
+        // Camera Control Variables (NEW)
+        let isCameraDragging = false;
+        const cameraDistance = 15; // Fixed distance from the center
+        let cameraPhi = Math.PI / 3; // Vertical angle (controls height, 0 is top, PI is bottom)
+        let cameraTheta = Math.PI / 4; // Horizontal angle (controls rotation around Y-axis)
+        let previousMousePosition = { x: 0, y: 0 }; // Used for calculating camera rotation delta
+        const rotationSpeed = 0.005; // Sensitivity of mouse rotation
 
         // --- Utility Functions ---
 
@@ -148,6 +157,20 @@
                 );
             });
         }
+        
+        /**
+         * Updates the camera position based on the spherical angles (phi and theta).
+         * (NEW: Called in the animate loop)
+         */
+        function updateCameraPosition() {
+            // Calculate spherical coordinates (r, theta, phi) centered at (0, 0, 0)
+            const x = cameraDistance * Math.sin(cameraPhi) * Math.sin(cameraTheta);
+            const y = cameraDistance * Math.cos(cameraPhi);
+            const z = cameraDistance * Math.sin(cameraPhi) * Math.cos(cameraTheta);
+
+            camera.position.set(x, y, z);
+            camera.lookAt(0, 0, 0); // Always look at the center of the world
+        }
 
 
         // --- Setup Functions ---
@@ -155,12 +178,11 @@
         function initThree() {
             // Scene
             scene = new THREE.Scene();
-            scene.fog = new THREE.Fog(0x1a1a2e, 10, 50);
+            scene.fog = new THREE.Fog(0x87ceeb, 10, 50); // Light blue fog
+            scene.background = new THREE.Color(0x87ceeb); // Light blue background
 
-            // Camera
+            // Camera: Position will be set by updateCameraPosition later
             camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(5, 5, 10);
-            camera.lookAt(0, 0, 0);
 
             // Renderer
             renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -222,7 +244,7 @@
 
             // Ground Mesh
             const groundGeometry = new THREE.PlaneGeometry(50, 50);
-            const groundMaterialThree = new THREE.MeshPhongMaterial({ color: 0x4a4e69, side: THREE.DoubleSide });
+            const groundMaterialThree = new THREE.MeshPhongMaterial({ color: 0x6aa84f, side: THREE.DoubleSide }); // Grass Green
             groundMesh = new THREE.Mesh(groundGeometry, groundMaterialThree);
             groundMesh.rotation.x = -Math.PI / 2;
             groundMesh.receiveShadow = true;
@@ -305,14 +327,12 @@
         }
 
         function createMultipleHorses() {
-            // Spawn 5 initial horses
+            // Spawn 10 horses
             addHorse(0, 5, 0);
             addHorse(2, 6, -1);
             addHorse(-2, 7, 1);
             addHorse(1, 8, 3);
             addHorse(-3, 9, -2);
-            
-            // Spawn 5 additional horses (New)
             addHorse(4, 5.5, 2);
             addHorse(-4, 6.5, -3);
             addHorse(3, 7.5, -4);
@@ -332,20 +352,26 @@
             event.preventDefault();
             draggedHorseBody = null;
             isDragging = false;
+            isCameraDragging = false; // Reset camera drag
 
             // 1. Update mouse coordinates
             mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
             mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            
+            // Record current mouse position for camera drag
+            previousMousePosition.x = event.clientX;
+            previousMousePosition.y = event.clientY;
 
             // 2. Raycast to find any horse (intersects the array of all horse meshes)
             raycaster.setFromCamera(mouse, camera);
             const intersects = raycaster.intersectObjects(horseMeshes, true); 
 
             if (intersects.length > 0) {
+                // Horse was hit, start dragging horse logic
                 isDragging = true;
                 const intersectionPoint = intersects[0].point;
                 
-                // Traverse up the parent hierarchy to find the main mesh group (which stores the physics body reference)
+                // Traverse up the parent hierarchy to find the main mesh group 
                 let draggedMesh = intersects[0].object;
                 while (draggedMesh && !draggedMesh.userData.physicsBody && draggedMesh.parent !== scene) {
                     draggedMesh = draggedMesh.parent;
@@ -362,7 +388,7 @@
                 // 3. Set the mouse body position to the intersection point
                 mouseBody.position.copy(intersectionPoint);
 
-                // 4. Create a point-to-point constraint between the dragged horse and the mouse body
+                // 4. Create a point-to-point constraint 
                 const anchorA = new CANNON.Vec3().copy(intersectionPoint).vsub(draggedHorseBody.position);
                 const anchorB = new CANNON.Vec3(0, 0, 0); 
                 const localPivot = draggedHorseBody.pointToLocalFrame(anchorA);
@@ -375,17 +401,22 @@
                 draggedHorseBody.angularVelocity.set(0, 0, 0);
 
                 velocityHistory.length = 0;
+            } else {
+                // No horse hit, start camera dragging
+                isCameraDragging = true;
+                renderer.domElement.style.cursor = 'grabbing';
             }
         }
 
         function onPointerMove(event) {
             event.preventDefault();
 
-            // 1. Update current mouse position
+            // 1. Update current mouse position (for horse throwing)
             lastMousePos.copy(currentMousePos);
             currentMousePos.set((event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1);
 
             if (isDragging) {
+                // Horse Dragging Logic
                 // 2. Calculate new world position for the constraint point
                 const newWorldPos = getWorldPosition(currentMousePos, plane);
 
@@ -404,6 +435,20 @@
                         velocityHistory.shift();
                     }
                 }
+            } else if (isCameraDragging) {
+                // Camera Dragging Logic (NEW)
+                const deltaX = event.clientX - previousMousePosition.x;
+                const deltaY = event.clientY - previousMousePosition.y;
+
+                cameraTheta -= deltaX * rotationSpeed;
+                cameraPhi -= deltaY * rotationSpeed;
+
+                // Keep phi between a small epsilon and PI - epsilon to prevent camera from flipping
+                const epsilon = 0.01;
+                cameraPhi = Math.max(epsilon, Math.min(Math.PI - epsilon, cameraPhi));
+
+                previousMousePosition.x = event.clientX;
+                previousMousePosition.y = event.clientY;
             }
         }
 
@@ -421,6 +466,10 @@
                 constraint = null;
                 draggedHorseBody = null; 
             }
+            
+            // Camera drag release (NEW)
+            isCameraDragging = false;
+            renderer.domElement.style.cursor = 'grab'; // Set cursor back to default grab style
         }
 
         // --- Animation Loop ---
@@ -442,6 +491,9 @@
                     mesh.quaternion.copy(body.quaternion);
                 }
             }
+            
+            // Update camera position based on calculated angles (NEW)
+            updateCameraPosition();
 
             // If dragging, update the plane position to follow the horse
             if (isDragging && plane) {
@@ -469,9 +521,9 @@
             initThree();
             initCannon();
             createMultipleHorses();
+            updateCameraPosition(); // Set initial camera position
             animate();
         };
 
     </script>
 </body>
-</html>
