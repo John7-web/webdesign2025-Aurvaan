@@ -50,7 +50,7 @@
     <div id="info-box" class="shadow-xl">
         <p class="mb-1"><strong>10 Tiny, Heavy Physics Horses!</strong></p>
         <p class="small-text">Click/Tap & Drag to Pick Up and Throw.</p>
-        <p class="small-text mb-3">Drag empty space to **Rotate Camera**. Use **Arrows / WASD** to **Move Camera**.</p>
+        <p class="small-text mb-3">Drag empty space to **Rotate Camera**. Use **Arrows / WASD** for **Horizontal Move**, and **Space/Shift** for **Up/Down**.</p>
         <!-- NEW BUTTON ADDED HERE --><button id="throw-button" onclick="throwAllHorses()" class="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow-lg transition duration-200 transform hover:scale-105 active:scale-95">
             LAUNCH THE HERD!
         </button>
@@ -87,12 +87,14 @@
         let cameraTarget = new THREE.Vector3(0, 0, 0); // The point the camera orbits around and looks at
         const cameraMoveSpeed = 0.3; // Speed for translational movement
 
-        // Keyboard state tracking (NEW)
+        // Keyboard state tracking (UPDATED)
         const keys = {
             forward: false,
             backward: false,
             left: false,
             right: false,
+            up: false,     // NEW: Spacebar
+            down: false,   // NEW: Shift
         };
 
         // --- Utility Functions ---
@@ -187,14 +189,14 @@
             camera.lookAt(cameraTarget); // Always look at the target point
         }
 
-        // --- Keyboard Controls (NEW) ---
+        // --- Keyboard Controls (UPDATED) ---
 
         /**
          * Updates the keyboard state when a key is pressed or released.
          */
         function handleKeyAction(event, isDown) {
-            // Prevent default behavior (like scrolling) for arrow keys
-            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'w', 's', 'a', 'd'].includes(event.key)) {
+            // Prevent default behavior (like scrolling) for navigation keys
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'w', 's', 'a', 'd', ' ', 'Shift'].includes(event.key)) {
                 event.preventDefault();
             }
 
@@ -215,6 +217,12 @@
                 case 'arrowright':
                 case 'd':
                     keys.right = isDown;
+                    break;
+                case ' ': // Spacebar for up
+                    keys.up = isDown;
+                    break;
+                case 'shift': // Shift key for down
+                    keys.down = isDown;
                     break;
             }
         }
@@ -546,8 +554,8 @@
                 }
             }
             
-            // --- Camera Translation Movement (NEW) ---
-            if (keys.forward || keys.backward || keys.left || keys.right) {
+            // --- Camera Translation Movement (UPDATED to include Y-axis movement) ---
+            if (keys.forward || keys.backward || keys.left || keys.right || keys.up || keys.down) {
                 const direction = new THREE.Vector3();
                 // Get the direction the camera is currently looking (from target to camera)
                 camera.getWorldDirection(direction); 
@@ -573,6 +581,14 @@
                 }
                 if (keys.right) {
                     cameraTarget.addScaledVector(right, cameraMoveSpeed);
+                }
+                
+                // NEW: Vertical Movement along the Y-axis (Up/Down)
+                if (keys.up) {
+                    cameraTarget.y += cameraMoveSpeed;
+                }
+                if (keys.down) {
+                    cameraTarget.y -= cameraMoveSpeed;
                 }
             }
 
