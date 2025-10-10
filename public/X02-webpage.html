@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Physics Blocks Simulator</title>
+    <!-- Load Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Three.js (3D Rendering) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Load Cannon.js (Physics Engine) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js"></script>
+    <style>
+        /* Custom styles for the game environment */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1e293b; /* Dark slate background */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden; /* Hide scrollbars */
+        }
+        #info {
+            position: absolute;
+            top: 1rem;
+            text-align: center;
+            color: #f8fafc;
+            z-index: 10;
+        }
+        #controls {
+            position: absolute;
+            bottom: 2rem;
+            z-index: 10;
+            width: 90%;
+            max-width: 400px;
+        }
+        canvas {
+            display: block;
+            touch-action: none; /* Allows canvas interaction without confusing touch events */
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'brand-green': '#10b981',
+                        'brand-hover': '#059669',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body>
+
+    <div id="info" class="p-2 rounded-lg bg-black/50">
+        <h1 class="text-2xl font-bold">3D Physics Sandbox</h1>
+        <p class="text-sm">Random blocks affected by gravity.</p>
+        <p class="text-xs mt-1">Click and drag to rotate camera (Desktop).</p>
+    </div>
+
+    <div id="controls">
+        <button id="throw-button"
+            class="w-full py-3 px-6 text-white font-bold rounded-lg transition duration-200 ease-in-out
+                   bg-brand-green hover:bg-brand-hover active:scale-[0.98] shadow-xl shadow-brand-green/40 focus:outline-none focus:ring-4 focus:ring-brand-green/50">
+            Throw Blocks Around!
+        </button>
+    </div>
+
+    <!-- Canvas will be inserted here by Three.js -->
+
+    <script>
+        // --- Global Variables ---
+        let scene, camera, renderer;
+        let world; // Cannon.js physics world
+        const blocks = []; // Array to store {mesh, body} objects
+        const timeStep = 1 / 60; // Physics simulation step rate
+        const maxBlocks = 50;
+
+        // Camera control variables
+        let isDragging = false;
+        let previousMousePosition = { x: 0, y: 0 };
+        const cameraPivot = new THREE.Object3D();
+        const cameraDistance = 20;
+
+        // --- Initialization ---
+
+        function init() {
+            // 1. Scene Setup
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x334155); // Dark background for contrast
+
+            // 2. Camera Setup
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            
+            // Initial camera position (will be updated by the pivot)
+            camera.position.set(0, 5, cameraDistance);
+            camera.lookAt(0, 0, 0);
+
+            // Set up camera pivot for easy orbiting
+            cameraPivot.add(camera);
+            scene.add(cameraPivot);
+
+            // 3. Renderer Setup
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            document.body.appendChild(renderer.domElement);
+
+            // 4. Lighting
+            const ambientLight = new THREE.AmbientLight(0x404040, 3); // Soft white light
+            scene.add(ambientLight);
+
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
+            directionalLight.position.set(10, 20, 10); // Position the light source
+            directionalLight.castShadow = true;
+            directionalLight.shadow.mapSize.width = 2048;
+            directionalLight.shadow.mapSize.height = 2048;
+            directionalLight.shadow.camera.near = 0.5;
+            directionalLight.shadow.camera.far = 50;
+            directionalLight.shadow.camera.left = -15;
+            directionalLight.shadow.camera.right = 15;
+            directionalLight.shadow.camera.top = 15;
+            directionalLight.shadow.camera.bottom = -15;
+            scene.add(directionalLight);
+
+            // 5. Cannon.js World Setup
+            world = new CANNON.World();
+            world.gravity.set(0, -9.82, 0); // Earth gravity
+            world.broadphase = new CANNON.NaiveBroadphase();
+            world.solver.iterations = 10;
+
+            // 6. Create Ground Plane
+            createGround();
+
+            // 7. Initial Blocks
+            for (let i = 0; i < maxBlocks; i++) {
+                createRandomBlock();
+            }
+
+            // 8. Event Listeners
+            window.addEventListener('resize', onWindowResize);
+            document.getElementById('throw-button').addEventListener('click', throwBlocks);
+            
+            // Camera control listeners
+            renderer.domElement.addEventListener('mousedown', onMouseDown);
+            renderer.domElement.addEventListener('mousemove', onMouseMove);
+            renderer.domElement.addEventListener('mouseup', onMouseUp);
+            renderer.domElement.addEventListener('touchstart', onTouchStart, { passive: true });
+            renderer.domElement.addEventListener('touchmove', onTouchMove, { passive: false });
+            renderer.domElement.addEventListener('touchend', onTouchEnd);
+        }
+
+        // --- Core Functions ---
+
+        /**
+         * Creates a static ground plane for the physics world and rendering.
+         */
+        function createGround() {
+            // Three.js Ground Mesh
+            const groundGeometry = new THREE.PlaneGeometry(50, 50, 1, 1);
+            const groundMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x22c55e, // Emerald green
+                metalness: 0.1,
+                roughness: 0.8
+            });
+            const groundMesh = new THREE.Mesh(groundGeometry, groundMaterial);
+            groundMesh.rotation.x = -Math.PI / 2;
+            groundMesh.receiveShadow = true;
+            scene.add(groundMesh);
+
+            // Cannon.js Ground Body
+            const groundShape = new CANNON.Plane();
+            const groundBody = new CANNON.Body({ mass: 0 }); // mass 0 makes it static
+            groundBody.addShape(groundShape);
+            groundBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -Math.PI / 2); // Rotate to horizontal
+            world.addBody(groundBody);
+        }
+
+        /**
+         * Creates a random sized block (mesh and physics body) and adds it to the simulation.
+         */
+        function createRandomBlock() {
+            const size = Math.random() * 0.8 + 0.4;
+            const color = new THREE.Color(Math.random(), Math.random(), Math.random()).getHex();
+
+            // Three.js Mesh
+            const geometry = new THREE.BoxGeometry(size, size, size);
+            const material = new THREE.MeshStandardMaterial({ color: color, metalness: 0.1, roughness: 0.4 });
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+            scene.add(mesh);
+
+            // Cannon.js Body
+            const halfExtents = new CANNON.Vec3(size * 0.5, size * 0.5, size * 0.5);
+            const shape = new CANNON.Box(halfExtents);
+            const mass = size * size * size * 10; // Mass scales with volume
+            const body = new CANNON.Body({ mass: mass, shape: shape });
+            
+            // Random initial position high up
+            body.position.set(Math.random() * 8 - 4, Math.random() * 10 + 5, Math.random() * 8 - 4);
+            world.addBody(body);
+
+            blocks.push({ mesh, body });
+        }
+
+        /**
+         * Applies a random strong impulse to every block in the scene, throwing them around.
+         */
+        function throwBlocks() {
+            const force = 40;
+            const throwPosition = new CANNON.Vec3(0, 2, 0); // Point in space where the force originates
+
+            blocks.forEach(block => {
+                // Reset block rotation/velocity for a fresh throw
+                block.body.velocity.set(0, 0, 0);
+                block.body.angularVelocity.set(0, 0, 0);
+
+                // Calculate random impulse vector
+                const impulse = new CANNON.Vec3(
+                    (Math.random() * 2 - 1) * force, // X: -40 to 40
+                    Math.random() * force * 1.5 + 20, // Y: Upwards lift
+                    (Math.random() * 2 - 1) * force  // Z: -40 to 40
+                );
+
+                // Apply the impulse to the center of the body
+                block.body.applyImpulse(impulse, block.body.position);
+            });
+            console.log("Blocks thrown!");
+        }
+
+        /**
+         * Main animation loop. Steps the physics world and synchronizes meshes.
+         */
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // 1. Step the physics world
+            world.step(timeStep);
+
+            // 2. Synchronize Three.js meshes with Cannon.js bodies
+            blocks.forEach(block => {
+                // Update position
+                block.mesh.position.copy(block.body.position);
+                // Update rotation
+                block.mesh.quaternion.copy(block.body.quaternion);
+
+                // Simple check to respawn falling blocks
+                if (block.body.position.y < -20) {
+                    block.body.position.set(Math.random() * 8 - 4, 10, Math.random() * 8 - 4);
+                    block.body.velocity.set(0, 0, 0);
+                    block.body.angularVelocity.set(0, 0, 0);
+                }
+            });
+            
+            // 3. Render the scene
+            renderer.render(scene, camera);
+        }
+
+        // --- Event Handlers ---
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // --- Camera Orbit Controls ---
+
+        function onMouseDown(event) {
+            isDragging = true;
+            previousMousePosition.x = event.clientX;
+            previousMousePosition.y = event.clientY;
+            renderer.domElement.style.cursor = 'grabbing';
+        }
+
+        function onMouseMove(event) {
+            if (!isDragging) return;
+            
+            const deltaX = event.clientX - previousMousePosition.x;
+            const deltaY = event.clientY - previousMousePosition.y;
+
+            // Rotate pivot horizontally (around Y axis)
+            cameraPivot.rotation.y += deltaX * 0.005;
+
+            // Rotate pivot vertically (around its X axis)
+            // Limit vertical rotation to avoid flipping (e.g., between -PI/2 and PI/2)
+            const currentXRotation = cameraPivot.rotation.x;
+            const newXRotation = currentXRotation + deltaY * 0.005;
+            cameraPivot.rotation.x = Math.max(-Math.PI / 2 + 0.1, Math.min(Math.PI / 2 - 0.1, newXRotation));
+            
+            previousMousePosition.x = event.clientX;
+            previousMousePosition.y = event.clientY;
+        }
+
+        function onMouseUp() {
+            isDragging = false;
+            renderer.domElement.style.cursor = 'grab';
+        }
+        
+        function onTouchStart(event) {
+            if (event.touches.length === 1) {
+                isDragging = true;
+                previousMousePosition.x = event.touches[0].clientX;
+                previousMousePosition.y = event.touches[0].clientY;
+            }
+        }
+
+        function onTouchMove(event) {
+            if (!isDragging || event.touches.length !== 1) return;
+            
+            event.preventDefault(); // Prevent scrolling on touch screens
+            
+            const deltaX = event.touches[0].clientX - previousMousePosition.x;
+            const deltaY = event.touches[0].clientY - previousMousePosition.y;
+
+            // Use the same rotation logic as mouseMove
+            cameraPivot.rotation.y += deltaX * 0.005;
+
+            const currentXRotation = cameraPivot.rotation.x;
+            const newXRotation = currentXRotation + deltaY * 0.005;
+            cameraPivot.rotation.x = Math.max(-Math.PI / 2 + 0.1, Math.min(Math.PI / 2 - 0.1, newXRotation));
+
+            previousMousePosition.x = event.touches[0].clientX;
+            previousMousePosition.y = event.touches[0].clientY;
+        }
+
+        function onTouchEnd() {
+            isDragging = false;
+        }
+
+        // --- Start Application ---
+        window.onload = function () {
+            init();
+            animate();
+        }
+    </script>
+</body>
+</html>

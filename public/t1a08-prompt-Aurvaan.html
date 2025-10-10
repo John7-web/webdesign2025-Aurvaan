@@ -1,0 +1,321 @@
+<div id="whitetext"><h2 align="center">t1a08-prompt-Aurvaan.html</h2>
+int pre tags write a prompt for really interesting javascript HTML and CSS
+single file webpage. Add all other prompts in their own pre tag for anything
+else you do or image you generate. Have this writing then the pretag then
+then the generate page
+<br><br>
+
+Prompt 1:
+<pre>
+   Make a webpage where the background is a wave animation that move across the screen,
+    and each wave are different color and randomly change color with a slow transition
+</pre>
+
+prompt 2:
+<pre>
+make a webpage with button that invert all the colors on the webpage including the background color
+</pre>
+
+image prompt:
+<pre>
+Make a whale jumping out of ocean doing a background awhile lazar shooting out
+ its eyes with horses riding the of the whale and also shooting lazar out of their eyes
+</pre>
+You include every prompt you used to make your final page<br>
+</div>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            overflow: hidden; /* Prevent scrolling due to wave effect */
+            height: 100vh;
+            /* Optional: Set a subtle dark background for better contrast */
+            background-color: #0d0e12; 
+        }
+        #waveCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: -1; /* Place behind content */
+            width: 100vw;
+            height: 100vh;
+        }
+        #whitetext{
+            color: rgb(218, 218, 218);
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="waveCanvas"></canvas>
+    <script>
+        // Global variables for canvas and context
+        const canvas = document.getElementById('waveCanvas');
+        const ctx = canvas.getContext('2d');
+        let width = window.innerWidth;
+        let height = window.innerHeight;
+        let animationFrameId;
+
+        // Color transition state
+        // Transition over 300 frames (approx. 5 seconds at 60fps)
+        const TRANSITION_DURATION_FRAMES = 300; 
+        // Trigger a new target color every 300 frames (when the previous transition ends)
+        const COLOR_CHANGE_INTERVAL = TRANSITION_DURATION_FRAMES; 
+        let colorChangeFrameCount = COLOR_CHANGE_INTERVAL; // Start at max to trigger initial transition setup
+
+        /**
+         * Generates a random RGBA color string with a specified alpha value range.
+         * @param {number} minAlpha - Minimum transparency value (0.0 to 1.0).
+         * @param {number} maxAlpha - Maximum transparency value (0.0 to 1.0).
+         * @returns {string} - RGBA color string.
+         */
+        const getRandomRgbaColor = (minAlpha, maxAlpha) => {
+            const r = Math.floor(Math.random() * 255);
+            const g = Math.floor(Math.random() * 255);
+            const b = Math.floor(Math.random() * 255);
+            // Calculate a random alpha between min and max
+            const alpha = minAlpha + (Math.random() * (maxAlpha - minAlpha));
+            return `rgba(${r}, ${g}, ${b}, ${alpha.toFixed(2)})`;
+        };
+
+        /**
+         * Parses an rgba() string into a color object.
+         * @param {string} rgbaString - e.g., "rgba(255, 100, 50, 0.5)"
+         * @returns {object} - {r, g, b, a}
+         */
+        const parseRgba = (rgbaString) => {
+            const parts = rgbaString.match(/rgba?\((\d+),\s*(\d+),\s*(\d+),\s*([\d\.]+)\)/);
+            if (!parts) return { r: 0, g: 0, b: 0, a: 0 };
+            return {
+                r: parseInt(parts[1]),
+                g: parseInt(parts[2]),
+                b: parseInt(parts[3]),
+                a: parseFloat(parts[4])
+            };
+        };
+
+        /**
+         * Linearly interpolates between two values (c1, c2) by factor t.
+         */
+        const lerp = (c1, c2, t) => c1 + (c2 - c1) * t;
+
+        /**
+         * Interpolates between two RGBA color objects (r,g,b,a values).
+         * @param {object} color1 - {r, g, b, a}
+         * @param {object} color2 - {r, g, b, a}
+         * @param {number} t - Interpolation factor (0.0 to 1.0)
+         * @returns {string} - Interpolated rgba() string.
+         */
+        const interpolateRgba = (color1, color2, t) => {
+            const r = Math.round(lerp(color1.r, color2.r, t));
+            const g = Math.round(lerp(color1.g, color2.g, t));
+            const b = Math.round(lerp(color1.b, color2.b, t));
+            const a = lerp(color1.a, color2.a, t).toFixed(2);
+            return `rgba(${r}, ${g}, ${b}, ${a})`;
+        };
+
+        /**
+         * Sets up a new target color for each wave and resets the transition step.
+         */
+        const setupNewColorTransition = () => {
+            waves.forEach(wave => {
+                // 1. Target becomes the new start color
+                wave.startColor = wave.targetColor;
+
+                // 2. Generate and parse a new random target color
+                const newRgbaString = getRandomRgbaColor(wave.minAlpha, wave.maxAlpha);
+                wave.targetColor = parseRgba(newRgbaString);
+
+                // 3. Reset transition step
+                wave.transitionStep = 0;
+            });
+        };
+
+        // Configuration for the multiple waves. State now includes startColor, targetColor, and transitionStep.
+        const waves = [
+            { amplitude: 60, frequency: 0.015, speed: 0.005, minAlpha: 0.4, maxAlpha: 0.6, startColor: {r:0,g:0,b:0,a:0}, targetColor: {r:0,g:0,b:0,a:0}, transitionStep: COLOR_CHANGE_INTERVAL, offset: 0 },
+            { amplitude: 45, frequency: 0.02, speed: 0.008, minAlpha: 0.5, maxAlpha: 0.7, startColor: {r:0,g:0,b:0,a:0}, targetColor: {r:0,g:0,b:0,a:0}, transitionStep: COLOR_CHANGE_INTERVAL, offset: 1000 },
+            { amplitude: 70, frequency: 0.01, speed: 0.003, minAlpha: 0.3, maxAlpha: 0.5, startColor: {r:0,g:0,b:0,a:0}, targetColor: {r:0,g:0,b:0,a:0}, transitionStep: COLOR_CHANGE_INTERVAL, offset: 2000 },
+            { amplitude: 30, frequency: 0.025, speed: 0.012, minAlpha: 0.6, maxAlpha: 0.8, startColor: {r:0,g:0,b:0,a:0}, targetColor: {r:0,g:0,b:0,a:0}, transitionStep: COLOR_CHANGE_INTERVAL, offset: 3000 },
+        ];
+        
+        // Setup initial colors immediately
+        setupNewColorTransition();
+
+
+        /**
+         * Sets the canvas dimensions to match the window size.
+         */
+        const setCanvasDimensions = () => {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+        };
+
+        /**
+         * Draws a single sine wave on the canvas.
+         * @param {number} amplitude - The height of the wave.
+         * @param {number} frequency - How often the wave repeats.
+         * @param {number} phase - The offset for animation.
+         * @param {string} color - The fill color (with transparency).
+         */
+        const drawWave = (amplitude, frequency, phase, color) => {
+            // Start path for the wave
+            ctx.beginPath();
+            
+            // Set the fill style, using transparency is key for the overlapping effect
+            ctx.fillStyle = color;
+
+            // Start the wave off-screen to the left, positioning it roughly in the center vertically
+            ctx.moveTo(0, height / 2);
+
+            // Iterate across the width of the canvas
+            for (let x = 0; x < width; x++) {
+                // Calculate the y position using the sine function
+                // y = Amplitude * sin(Frequency * x + Phase) + Center_Y
+                const y = amplitude * Math.sin(frequency * x + phase) + height / 2;
+                ctx.lineTo(x, y);
+            }
+
+            // Complete the shape to fill it, connecting the wave line to the bottom corners
+            ctx.lineTo(width, height);
+            ctx.lineTo(0, height);
+            
+            ctx.closePath(); 
+            ctx.fill(); // Fill the completed shape
+        };
+
+        /**
+         * Main animation loop.
+         */
+        const animate = () => {
+            // Clear the canvas on each frame
+            ctx.clearRect(0, 0, width, height);
+
+            // Check if it's time to trigger a new color transition
+            colorChangeFrameCount++;
+            if (colorChangeFrameCount >= COLOR_CHANGE_INTERVAL) {
+                setupNewColorTransition();
+                colorChangeFrameCount = 0;
+            }
+
+            // Draw each configured wave
+            waves.forEach(wave => {
+                // Advance the transition step if not complete
+                if (wave.transitionStep < TRANSITION_DURATION_FRAMES) {
+                    wave.transitionStep++;
+                }
+
+                // Calculate the interpolation factor (t ranges from 0.0 to 1.0)
+                const t = wave.transitionStep / TRANSITION_DURATION_FRAMES;
+
+                // Calculate the smoothly interpolated color
+                const interpolatedColor = interpolateRgba(wave.startColor, wave.targetColor, t);
+                
+                // Update the wave's horizontal movement
+                wave.offset += wave.speed;
+                
+                // Draw the wave with the calculated color
+                drawWave(wave.amplitude, wave.frequency, wave.offset, interpolatedColor);
+            });
+
+            // Request the next frame
+            animationFrameId = requestAnimationFrame(animate);
+        };
+
+        /**
+         * Event listener for window resize to maintain full screen canvas.
+         */
+        window.addEventListener('resize', () => {
+            // Cancel the current animation frame to avoid drawing artifacts during resize
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+            }
+            // Update dimensions and restart the animation
+            setCanvasDimensions();
+            animate();
+        });
+
+        // Initialize the canvas dimensions and start the animation
+        window.onload = () => {
+            setCanvasDimensions();
+            animate();
+        };
+
+    </script>
+
+ <style>
+        #invert-button{
+            border-radius: 12px;
+            padding: 15px 32px;
+            
+           
+        }
+
+        /* The core style: invert ALL colors on the page, including backgrounds, text, and UI elements. */
+        body.inverted {
+            /* Invert all colors (100%). This ensures white backgrounds become black, and vice-versa. */
+            filter: invert(100%);
+        }
+        
+        /* If the body is inverted, we need to re-invert images and videos 
+           so they don't look like color negatives. */
+        .inverted img, .inverted video {
+            filter: invert(100%);
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'brand-purple': '#8b5cf6',
+                        'brand-hover': '#7c3aed',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body>
+
+
+        <!-- Invert Button -->
+        <button id="invert-button"
+            class="w-full py-3 px-6 text-white font-bold rounded-lg transition duration-200 ease-in-out
+                   bg-brand-purple hover:bg-brand-hover active:scale-[0.98] shadow-lg shadow-brand-purple/30 focus:outline-none focus:ring-4 focus:ring-brand-purple/50">
+            Invert Colors
+        </button>
+    <script>
+        const body = document.body;
+        const button = document.getElementById('invert-button');
+        const titleText = document.getElementById('title-text');
+        
+        /**
+         * Toggles the 'inverted' class on the body to flip colors.
+         */
+        function toggleColorInversion() {
+            body.classList.toggle('inverted');
+            const isInverted = body.classList.contains('inverted');
+
+            if (isInverted) {
+                // Update button and title for Inverted Mode
+                button.textContent = "Restore Colors";
+                button.classList.remove('bg-brand-purple', 'shadow-brand-purple/30');
+                button.classList.add('bg-red-500', 'shadow-red-500/30');
+                titleText.textContent = "Inverted Mode";
+            } else {
+                // Update button and title for Light Mode
+                button.textContent = "Invert Colors";
+                button.classList.remove('bg-red-500', 'shadow-red-500/30');
+                button.classList.add('bg-brand-purple', 'shadow-brand-purple/30');
+                titleText.textContent = "Light Mode";
+            }
+        }
+
+        // Add the click listener to the button
+        button.addEventListener('click', toggleColorInversion);
+
+    </script>
+    <img align="center" src="lazar whale.jpg" width="400" height="400">
