@@ -4,14 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>3D Physics Horse Simulator</title>
-    <!-- Load Tailwind CSS for utility classes -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Load Three.js for 3D rendering -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <!-- Load Cannon.js for physics simulation -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js"></script>
-    <!-- Load GLTFLoader for complex 3D models -->
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <!-- Load Tailwind CSS for utility classes --><script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Three.js for 3D rendering --><script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Load Cannon.js for physics simulation --><script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js"></script>
+    <!-- Load GLTFLoader for complex 3D models --><script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     <style>
         body {
             margin: 0;
@@ -37,6 +33,12 @@
             flex-direction: column;
             align-items: center;
         }
+        #info-box p.small-text {
+            font-size: 0.85rem;
+            margin-top: 5px;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
         canvas {
             display: block;
             cursor: grab; /* Hint that the scene is draggable */
@@ -46,9 +48,10 @@
 <body>
 
     <div id="info-box" class="shadow-xl">
-        <p class="mb-3"><strong>10 Tiny, Heavy Physics Horses!</strong> - Click/Tap and Drag to Pick Up and Throw them. **Click and drag empty space to rotate the camera.**</p>
-        <!-- NEW BUTTON ADDED HERE -->
-        <button id="throw-button" onclick="throwAllHorses()" class="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow-lg transition duration-200 transform hover:scale-105 active:scale-95">
+        <p class="mb-1"><strong>10 Tiny, Heavy Physics Horses!</strong></p>
+        <p class="small-text">Click/Tap & Drag to Pick Up and Throw.</p>
+        <p class="small-text mb-3">Drag empty space to **Rotate Camera**. Use **Arrows / WASD** to **Move Camera**.</p>
+        <!-- NEW BUTTON ADDED HERE --><button id="throw-button" onclick="throwAllHorses()" class="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow-lg transition duration-200 transform hover:scale-105 active:scale-95">
             LAUNCH THE HERD!
         </button>
     </div>
@@ -72,13 +75,25 @@
         let currentMousePos = new THREE.Vector2();
         const velocityHistory = [];
 
-        // Camera Control Variables (NEW)
+        // Camera Control Variables
         let isCameraDragging = false;
         const cameraDistance = 15; // Fixed distance from the center
         let cameraPhi = Math.PI / 3; // Vertical angle (controls height, 0 is top, PI is bottom)
         let cameraTheta = Math.PI / 4; // Horizontal angle (controls rotation around Y-axis)
         let previousMousePosition = { x: 0, y: 0 }; // Used for calculating camera rotation delta
         const rotationSpeed = 0.005; // Sensitivity of mouse rotation
+
+        // Translation additions (NEW)
+        let cameraTarget = new THREE.Vector3(0, 0, 0); // The point the camera orbits around and looks at
+        const cameraMoveSpeed = 0.3; // Speed for translational movement
+
+        // Keyboard state tracking (NEW)
+        const keys = {
+            forward: false,
+            backward: false,
+            left: false,
+            right: false,
+        };
 
         // --- Utility Functions ---
 
@@ -115,7 +130,7 @@
                 if (dt > 0) {
                     const dx = (current.x - prev.x) / dt;
                     const dy = (current.y - prev.y) / dt;
-                    const dz = (current.z - prev.z) / dt;
+                    const dz = (current.z - prev.p) / dt;
                     totalVelocity.add(new THREE.Vector3(dx, dy, dz));
                 }
             }
@@ -159,19 +174,58 @@
         }
         
         /**
-         * Updates the camera position based on the spherical angles (phi and theta).
-         * (NEW: Called in the animate loop)
+         * Updates the camera position based on the spherical angles (phi and theta) relative to the cameraTarget.
          */
         function updateCameraPosition() {
-            // Calculate spherical coordinates (r, theta, phi) centered at (0, 0, 0)
+            // Calculate spherical coordinates (r, theta, phi) relative to cameraTarget
             const x = cameraDistance * Math.sin(cameraPhi) * Math.sin(cameraTheta);
             const y = cameraDistance * Math.cos(cameraPhi);
             const z = cameraDistance * Math.sin(cameraPhi) * Math.cos(cameraTheta);
 
-            camera.position.set(x, y, z);
-            camera.lookAt(0, 0, 0); // Always look at the center of the world
+            // Camera position is offset from the target
+            camera.position.set(x, y, z).add(cameraTarget); 
+            camera.lookAt(cameraTarget); // Always look at the target point
         }
 
+        // --- Keyboard Controls (NEW) ---
+
+        /**
+         * Updates the keyboard state when a key is pressed or released.
+         */
+        function handleKeyAction(event, isDown) {
+            // Prevent default behavior (like scrolling) for arrow keys
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'w', 's', 'a', 'd'].includes(event.key)) {
+                event.preventDefault();
+            }
+
+            const key = event.key.toLowerCase();
+            switch (key) {
+                case 'arrowup':
+                case 'w':
+                    keys.forward = isDown;
+                    break;
+                case 'arrowdown':
+                case 's':
+                    keys.backward = isDown;
+                    break;
+                case 'arrowleft':
+                case 'a':
+                    keys.left = isDown;
+                    break;
+                case 'arrowright':
+                case 'd':
+                    keys.right = isDown;
+                    break;
+            }
+        }
+
+        /**
+         * Sets up the global keyboard listeners.
+         */
+        function setupKeyboardControls() {
+            window.addEventListener('keydown', (event) => handleKeyAction(event, true));
+            window.addEventListener('keyup', (event) => handleKeyAction(event, false));
+        }
 
         // --- Setup Functions ---
 
@@ -436,7 +490,7 @@
                     }
                 }
             } else if (isCameraDragging) {
-                // Camera Dragging Logic (NEW)
+                // Camera Rotation Dragging Logic
                 const deltaX = event.clientX - previousMousePosition.x;
                 const deltaY = event.clientY - previousMousePosition.y;
 
@@ -492,10 +546,40 @@
                 }
             }
             
-            // Update camera position based on calculated angles (NEW)
+            // --- Camera Translation Movement (NEW) ---
+            if (keys.forward || keys.backward || keys.left || keys.right) {
+                const direction = new THREE.Vector3();
+                // Get the direction the camera is currently looking (from target to camera)
+                camera.getWorldDirection(direction); 
+
+                // Calculate the right vector for strafing movement
+                const right = new THREE.Vector3().crossVectors(direction, camera.up); 
+                right.y = 0; // Keep strafing movement horizontal (XZ plane)
+                right.normalize();
+
+                // Forward vector, also keeping movement horizontal
+                const forwardXZ = direction.clone();
+                forwardXZ.y = 0; // Keep forward/backward movement horizontal (XZ plane)
+                forwardXZ.normalize();
+
+                if (keys.forward) {
+                    cameraTarget.addScaledVector(forwardXZ, cameraMoveSpeed);
+                }
+                if (keys.backward) {
+                    cameraTarget.addScaledVector(forwardXZ, -cameraMoveSpeed);
+                }
+                if (keys.left) {
+                    cameraTarget.addScaledVector(right, -cameraMoveSpeed);
+                }
+                if (keys.right) {
+                    cameraTarget.addScaledVector(right, cameraMoveSpeed);
+                }
+            }
+
+            // Update camera position based on calculated angles and new target
             updateCameraPosition();
 
-            // If dragging, update the plane position to follow the horse
+            // If dragging, update the plane position to follow the mouse
             if (isDragging && plane) {
                 // Keep the plane at a fixed distance from the camera along the Z axis of the intersection
                 const currentWorldPos = getWorldPosition(currentMousePos, plane);
@@ -520,6 +604,9 @@
         window.onload = function () {
             initThree();
             initCannon();
+            // Removed createFences();
+            // Removed createBarn();
+            setupKeyboardControls(); // Initialize keyboard listeners (NEW)
             createMultipleHorses();
             updateCameraPosition(); // Set initial camera position
             animate();
@@ -527,3 +614,4 @@
 
     </script>
 </body>
+</html>
