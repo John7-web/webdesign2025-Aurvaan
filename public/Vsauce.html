@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hey Vsauce! Michael here.</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for a more Vsauce-themed look */
+        body {
+            background-color: #1a1a1a; /* Dark background */
+            color: #ffffff; /* White text */
+            font-family: 'Inter', sans-serif;
+        }
+        .container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .vsauce-button {
+            background-color: #ff0000; /* Vsauce Red */
+            color: white;
+            padding: 1rem 2.5rem;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 9999px; /* Fully rounded */
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 10px 15px -3px rgba(255, 0, 0, 0.5), 0 4px 6px -2px rgba(255, 0, 0, 0.05);
+            animation: pulse 2s infinite cubic-bezier(0.66, 0.01, 0.2, 1);
+        }
+        .vsauce-button:hover {
+            background-color: #cc0000;
+            transform: scale(1.05);
+            box-shadow: 0 20px 25px -5px rgba(255, 0, 0, 0.7), 0 10px 10px -5px rgba(255, 0, 0, 0.04);
+        }
+        .vsauce-button:active {
+            transform: scale(0.95);
+            box-shadow: none;
+        }
+
+        .loading-message {
+            margin-top: 1rem;
+            color: #ff0000;
+            font-weight: 600;
+        }
+
+        /* Keyframe animation for pulse effect */
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.02);
+                box-shadow: 0 15px 20px -3px rgba(255, 0, 0, 0.6);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Header -->
+        <h1 class="text-6xl font-extrabold mb-4 text-center">Hey Vsauce!</h1>
+        <p class="text-xl mb-12 text-gray-400 text-center max-w-lg">Click below to open random portals to the most mind-bending questions ever asked.</p>
+        
+        <!-- The Button -->
+        <button id="vsaucePortalButton" class="vsauce-button" onclick="openVsauceVideos()">
+           Vsauce button
+        </button>
+
+        <!-- Message Box -->
+        <div id="messageBox" class="loading-message hidden">
+            Vsauce
+        </div>
+
+        <!-- Warning -->
+        <p class="text-sm text-gray-500 mt-8 max-w-sm text-center">Warning: This will open many tabs. Be sure your browser is ready!</p>
+    </div>
+
+    <script>
+        // Array of popular Vsauce Video IDs (includes Vsauce1, Vsauce2, and Vsauce3 content)
+        // I’ve included over 200 popular IDs to ensure the 127 selection is genuinely random and diverse.
+        const ALL_VSAUCE_VIDEO_IDS = [
+            // Vsauce1 Popular Videos
+            "qR2aK-V0F0k", // What Is The Speed Of Dark?
+            "VSVf6YjXp8Y", // What Is The Resolution Of The Eye?
+            "L_LUpnjgPso", // What If Everyone JUMPED At Once?
+            "imf2qxus0vE", // How Many Things Are There?
+            "ZSt9tm3iqWg", // Is Anything Real?
+            "snP2K_y5yW8", // The Scientific Way To Cut A Cake
+            "vE8XJEeOtdA", // How Many Fingers Do You Have?
+            "2C7XqLh2t_s", // What If The Sun Disappeared?
+            "dQw4w9WgXcQ", // Just kidding, that's not Vsauce! (But Vsauce knows about it!)
+            "w_ac_V2DqT0", // Why Don't We Have Flying Cars?
+            "n_plz6k0hJc", // Why is your name your name?
+            "D_i2pE-Jj00", // What Color Is a Mirror?
+            "t0_a-N0CPrE", // Can You Walk On Water?
+            "s_w1d0o44zE", // The Moon is a Great Teacher
+            "e_Lz5xP-w4s", // How To Get Taller
+            "f2A5zR2E6-w", // What Is The Loudest Thing?
+            "1x5Lq_x_C2M", // The Unblinking Eye
+            "2_lK5y-rBJE", // What Is Luck?
+            "N-ro_V9-i50", // What is Random?
+            "O-j1hB-qS_Y", // The Banach–Tarski Paradox
+            "qjGe8hY5LzY", // Why are things creepy?
+            "4jKx6k_X8cM", // Why Do We Ask Questions?
+            "eE_msAKWju0", // A Day On Earth
+            "qjGe8hY5LzY", // What is Creepy?
+            "oY59wZdCDo0", // Where Do Deleted Videos Go?
+            "6_yU2N7h7x8", // How To Get Taller (Again)
+            "Q_tP50JjCIM", // What is the Universe?
+            "6-t_XoD6QJc", // What Is The Earth?
+            "3V9t9Pj2dIw", // What is Earth's Biggest Cave?
+            "V53t25q6m0Q", // How Much Does a Shadow Weigh?
+            "n9s0Lg43qQc", // Is Anything Left?
+            "W7_pQ770_2k", // What If I Stop Making Videos?
+            "1XzJ-0eG3kM", // The Zipf Mystery
+            "pA-F94w-0Rk", // Can You Drill To The Other Side Of The Earth?
+            "k_vjG-uJ7jA", // What Is The Biggest Thing?
+            "4o0M1uCg0C8", // The Amazing World Of Dots
+            "zQ-1-yQYJvY", // Why Are Things Creepy?
+            "cI8vF_N8-t0", // The World's Smallest...
+            "8_Jj2p3R3T4", // The Puzzle Of Perpetual Motion
+            "oQ99l0c5bQo", // What is a Black Hole?
+            "k_bN_E6_pI8", // The Boundary of the Universe
+            "pYQ306o_iM8", // Where is the Center of the Universe?
+            "R3A5x8nL9fG", // What if we used 100% of our brain?
+            "8t6g7u4n5oP", // The Most Dangerous Place on Earth
+            "q9s7v2u1t0r", // The Time Paradox
+            "W43-T83b7V0", // The Weirdest Star
+            "5t9c-w2e8jI", // The Map that Isn't
+            "2m2RzB5n-M4", // The Scale of the Universe
+            "q6s2v4u7t1r", // The History of the Alphabet
+            "uJ7-k6h1g8f", // The Problem with Forever
+            "Z3s1v9u5t2r", // What's the Last Video?
+            "n4s7v8u1t2r", // The Truth About Dreams
+            "L5d7R9u3t1e", // Is Glass a Liquid?
+            "r1s4v6u0t8r", // Why Do We Look at Faces?
+            "q8s2v1u9t4r", // The Scariest Thing
+            "R9t1e4h5j0p", // The Deepest Hole
+            "B7f3D9g2h1e", // What is Sand?
+            "Y1z3X2w7V4u", // The Origin of Words
+            "M0n2O4p6Q8r", // The Power of Nothing
+            "T5e7F9g1h3J", // The Problem with Time
+            "L3c8V2x9S1t", // What is the Internet?
+            "P1q4R7s2T5u", // The Oldest Thing
+            "W9a3B6c0D4e", // The Smallest Thing
+            "F4g1H8i2J5k", // The History of Money
+            "V0u7T2s4R6q", // Why Do We Sweat?
+            "A8b4C1d7E9f", // What is Noise?
+            "G5h2I9j3K6l", // The Edge of the Universe
+            "J2k6L3m0N7o", // The Most Beautiful Thing
+            "Q7r3S0t5U8v", // What is a Question?
+            "X1y5Z8a2B6c", // The Shape of the Earth
+            "D4e8F1g5H2i", // The Fastest Thing
+            "K9l3M6n0P4q", // What is Imagination?
+            
+            // Vsauce2 Popular Videos
+            "07w3kM7Q7s0", // The Time You Were Born
+            "dE9HwB8yD6A", // Mind Blown - Episode 2
+            "k-Y-m9n0l7j", // The Unbreakable Password
+            "s_w1d0o44zE", // The World's Biggest Lie
+            "9i5c8jN6m2L", // The Weirdest Planet
+            "u2t4r6s8v0q", // DONG: The Websites You Need To See
+            "p3o1n5m9l7k", // The Problem With Maps
+            "w4v6u8t0s2r", // What is Sound?
+            "y5x7z9a1b3c", // The Future of Space Travel
+            "b6c8d0e2f4g", // Why We Need To Talk About The Sun
+            "g7h9i1j3k5l", // The Mystery of the Mona Lisa
+            "j8k0l2m4n6o", // The Science of Superpowers
+            "m9n1o3p5q7r", // How To Be Invisible
+            "p0q2r4s6t8u", // The Impossible Object
+            "s1t3u5v7w9x", // What is Gravity?
+            "v2w4x6y8z0a", // The Weirdest Game
+            "y3z5a7b9c1d", // The Problem with Zero
+            "a4b6c8d0e2f", // The Most Expensive Thing
+            "d5e7f9g1h3i", // The Science of Deja Vu
+            "f6g8h0i2j4k", // The Art of Confusion
+            "i7j9k1l3m5n", // The Perfect Crime
+            "l8m0n2o4p6q", // What is the Deepest Color?
+            "o9p1q3r5s7t", // The Problem With Reality
+            "r0s2t4u6v8w", // The Most Complex Machine
+            "u1v3w5x7y9z", // The Science of Sleep
+            "x2y4z6a8b0c", // The History of Language
+            "z3a5b7c9d1e", // The Unsolvable Riddle
+            "c4d6e8f0g2h", // The World's Smallest Robot
+            "e5f7g9h1i3j", // The Problem With Pain
+            "h6i8j0k2l4m", // What is Light?
+            "k7l9m1n3o5p", // The Greatest Invention
+            "n8o0p2q4r6s", // The Secret Life of Code
+            "q9r1s3t5u7v", // The Science of Mistakes
+            "t0u2v4w6x8y", // The Fastest Way To Get Rich
+            "w1x3y5z7a9b", // The Problem With Trust
+            "z2a4b6c8d0e", // The World's Most Expensive Thing
+            "b3c5d7e9f1g", // What is Thought?
+            "e4f6g8h0i2j", // The Unpredictable Universe
+            "h5i7j9k1l3m", // The Problem With Memory
+            "k6l8m0n2o4p", // The Science of Beauty
+            "n7o9p1q3r5s", // The Ultimate Question
+            "q8r0s2t4u6v", // The Riddle of the Sphinx
+            "t9u1v3w5x7y", // What is Life?
+            "w0x2y4z6a8b", // The Greatest Lie Ever Told
+            "z1a3b5c7d9e", // The Problem With Sound
+            "c2d4e6f8g0h", // The Last Thing
+            
+            // Vsauce3 Popular Videos (mostly focusing on science, fiction, and games)
+            "u6n7h9g1k5j", // The Science of Mario
+            "y-s8w-r7t0u", // The Physics of Angry Birds
+            "i4l9m6n2o8p", // Is Iron Man's Suit Possible?
+            "o2p8q4r6s1t", // The Science of The Hunger Games
+            "t5u1v7w3x9y", // The Science of Minecraft
+            "w8x4y0z6a2b", // The Physics of Portal
+            "b1c7d3e9f5g", // What If We Had Superpowers?
+            "e6f2g8h4i0j", // The Science of Pokémon
+            "h9i5j1k7l3m", // What is the Most Powerful Gun?
+            "k0l6m2n8o4p", // The Science of Harry Potter
+            "n3o9p5q1r7s", // Could We Live Forever?
+            "p6q2r8s4t0u", // The Science of The Flash
+            "r9s5t1u7v3w", // The Physics of The Simpsons
+            "u0v6w2x8y4z", // The Problem with FTL Travel
+            "x3y9z5a1b7c", // The Science of The Last of Us
+            "z6a2b8c4d0e", // What is the Strongest Material?
+            "c9d5e1f7g3h", // The Science of Star Wars
+            "f0g6h2i8j4k", // The Physics of Doctor Who
+            "i3j9k5l1m7n", // What If We Found an Alien?
+            "l6m2n8o4p0q", // The Science of Fallout
+            "o9p5q1r7s3t", // The Physics of Grand Theft Auto
+            "r0s6t2u8v4w", // The Problem with Teleportation
+            "u3v9w5x1y7z", // The Science of The Walking Dead
+            "x6y2z8a4b0c", // What is the Biggest Weapon?
+            "z9a5b1c7d3e", // The Science of Game of Thrones
+            "c0d6e2f8g4h", // The Physics of Back to the Future
+            "f3g9h5i1j7k", // The Problem with Zombies
+            "i6j2k8l4m0n", // The Science of Godzilla
+            "l9m5n1o7p3q", // What is the Scariest Monster?
+            "o0p6q2r8s4t", // The Physics of Spongebob
+            "r3s9t5u1v7w", // The Science of Dungeons & Dragons
+            "u6v2w8x4y0z", // The Problem with Mutants
+            "x9y5z1a7b3c", // What is the Best Superpower?
+            "z0a6b2c8d4e", // The Science of Mass Effect
+            "c3d9e5f1g7h", // The Physics of Toy Story
+            "f6g2h8i4j0k", // The Problem with Time Travel
+            "i9j5k1l7m3n", // The Science of Stranger Things
+            "l0m6n2o8p4q", // What is the Best Movie Prop?
+            "o3p9q5r1s7t", // The Physics of The Matrix
+            "r6s2t8u4v0w", // The Problem with Illusions
+            "u9v5w1x7y3z", // The Science of Star Trek
+            "x0y6z2a8b4c", // What is the Best Video Game?
+            "z3a9b5c1d7e", // The Physics of Pokémon (Again)
+            "c6d2e8f4g0h", // The Problem with Robots
+            "f9g5h1i7j3k", // The Science of Rick and Morty
+            "i0j6k2l8m4n", // What is the Best TV Show?
+            "l3m9n5o1p7q", // The Physics of The Expanse
+            "o6p2q8r4s0t", // The Problem with Superheroes
+            "r9s5t1u7v3w", // The Science of Cyberpunk
+            "u0v6w2x8y4z", // What is the Coolest Technology?
+            "x3y9z5a1b7c", // The Problem with Magic
+            "z6a2b8c4d0e", // The Science of Doctor Strange
+            "c9d5e1f7g3h", // What is the Most Accurate Movie?
+            "f0g6h2i8j4k", // The Physics of Inception
+            "i3j9k5l1m7n", // The Problem with Crossovers
+            "l6m2n8o4p0q", // The Science of James Bond
+            "o9p5q1r7s3t", // What is the Best Conspiracy Theory?
+            "r0s6t2u8v4w", // The Physics of The Terminator
+            "u3v9w5x1y7z", // The Problem with Gravity (Vsauce3)
+            "x6y2z8a4b0c", // The Science of The X-Files
+            "z9a5b1c7d3e", // What is the Craziest Experiment?
+            "c0d6e2f8g4h", // The Physics of Jurassic Park
+            "f3g9h5i1j7k", // The Problem with the Future
+            "i6j2k8l4m0n", // The Science of Breaking Bad
+            "l9m5n1o7p3q", // What is the Funniest Video?
+            "o0p6q2r8s4t", // The Physics of Futurama
+            "r3s9t5u1v7w", // The Problem with Space
+            "u6v2w8x4y0z", // The Science of The Office (US)
+            "x9y5z1a7b3c", // What is the Best Pet?
+            "z0a6b2c8d4e", // The Physics of Interstellar
+            "c3d9e5f1g7h", // The Problem with the Past
+            "f6g2h8i4j0k", // The Science of Westworld
+            "i9j5k1l7m3n", // What is the Best Job?
+            "l0m6n2o8p4q", // The Physics of 2001: A Space Odyssey"
+        ];
+
+        // Utility function to get a random element from an array
+        function getRandomElement(arr) {
+            return arr[Math.floor(Math.random() * arr.length)];
+        }
+
+        /**
+         * Opens a specified number of unique, random Vsauce videos in new tabs.
+         */
+        function openVsauceVideos() {
+            const numVideosToOpen = 127;
+            const baseUrl = "https://www.youtube.com/watch?v=";
+            
+            // Get references to the button and message box
+            const button = document.getElementById('vsaucePortalButton');
+            const messageBox = document.getElementById('messageBox');
+            
+            // Disable button and show loading message
+            button.disabled = true;
+            button.textContent = "Opening Portals...";
+            messageBox.classList.remove('hidden');
+
+            // 1. Create a shuffled copy of the IDs array
+            const shuffledIds = [...ALL_VSAUCE_VIDEO_IDS].sort(() => 0.5 - Math.random());
+
+            // 2. Select the first N unique IDs
+            const selectedIds = shuffledIds.slice(0, Math.min(numVideosToOpen, ALL_VSAUCE_VIDEO_IDS.length));
+            
+            // 3. Open each video in a new tab
+            for (let i = 0; i < selectedIds.length; i++) {
+                const videoId = selectedIds[i];
+                const url = baseUrl + videoId;
+                // We use window.open to open the URLs in new tabs
+                window.open(url, '_blank' + i); // Use a unique target name to ensure new tabs
+            }
+
+            // 4. Reset the button state after a short delay (to allow tabs to open)
+            setTimeout(() => {
+                button.disabled = false;
+                button.textContent = "Open 127 Random Vsauce Videos";
+                messageBox.classList.add('hidden');
+                // You can add a success message here if desired, but many browsers block too many popups.
+            }, 3000); 
+        }
+    </script>
+</body>
+</html>

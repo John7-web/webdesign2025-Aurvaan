@@ -1,2 +1,188 @@
 <h1 align="center">t1a11-onClick-Aurvaan.html</h1>
-<input type=button value="alert" onclick="{alert(hi)}"><br>
+
+<input type=button value="alert" onclick="{alert('hi')}"><br>
+
+<div id="myDiv01">...</div>
+
+<button onclick="{
+    const myDiv = document.getElementById('myDiv01')
+    myDiv.innerHTML = 'Hello'
+}">To Div</button> <br>
+
+
+This is <b onmouseover="{
+    document.body.style.backgroundColor = 'yellow';
+}"> bold and change background</b> this isn't<br>
+
+You do 8 on.... events. We have done onClick and onMouseOver
+<style>
+    #myContainer {
+  width: 400px;
+  height: 400px;
+  position: relative;
+  background: rgb(47, 0, 255);
+}
+#myAnimation {
+  width: 50px;
+  height: 50px;
+  position: absolute;
+  background: red;
+} 
+#colorSquare {
+            width: 200px;
+            height: 200px;
+            background-color: #3498db; /* Initial color (blue) */
+            transition: background-color 0.5s ease; /* Smooth color transition */
+            display: flex;
+            color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        body {
+            /* Ensures we can scroll */
+            height: 200vh; /* Make the body very tall to force a scrollbar */
+            margin: 0;
+            padding: 0;
+    
+        }      
+  
+              .fade-out {
+            /* This is the key: it tells the browser to transition the opacity */
+            /* over a duration of 4 seconds (4s) */
+            transition: opacity 4s ease-in-out;
+            opacity: 0 !important; /* The final, invisible state */}
+             #interactive-text {
+            /* Smooth transition for the scale effect */
+            transition: transform 0.3s ease-in-out, color 0.3s;
+            transform: scale(1.0); /* Initial state */
+            transform-origin: center center; /* Ensure scaling is centered */
+        }
+</style>
+<br><br>
+Click the button to able use animation with your up and down arrow keys
+<br>
+<button  onKeyDown="myMove()">Click Me</button  > 
+<div id="myContainer">
+<div id="myAnimation"></div>
+</div>
+<div id="color-element"></div>
+<br>
+<div id="colorSquare"></div>
+       
+<script>
+var id = null;
+function myMove() {
+  var elem = document.getElementById("myAnimation");   
+  var pos = 0;
+  clearInterval(id);
+  id = setInterval(frame, 10);
+  function frame() {
+    if (pos == 350) {
+      clearInterval(id);
+    } else {
+      pos++; 
+      elem.style.top = pos + 'px'; 
+      elem.style.left = pos + 'px'; 
+    }
+  }
+}
+</script>
+<script>
+        // JavaScript for the color change
+        const square = document.getElementById('colorSquare');
+
+        // Function to generate a random hex color
+        function getRandomColor() {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+
+        // Event listener for the 'wheel' event
+        window.addEventListener('wheel', function(event) {
+            // This function runs every time the scroll wheel is used
+
+            // Check if the scroll direction is up or down
+            // event.deltaY > 0 means scrolling down
+            // event.deltaY < 0 means scrolling up
+
+            // You can use the scroll event anywhere on the window.
+            // If you only want it to change color when scrolling over the square,
+            // you'd use square.addEventListener('wheel', ...);
+            
+            // Change the square's background color to a new random color
+            square.style.backgroundColor = getRandomColor();
+        });
+
+    </script>
+<b ondblclick="{
+    document.body.style.color = 'blue';
+}"> double click to change all color of text</b>
+<br>
+<script>
+        // Get the text element
+        const fadingTextElement = document.getElementById('fadingText');
+        
+        // This function is called by the onmouseup event attached to the div
+        function startFade(element) {
+            // Add the 'fade-out' class, which instantly changes the target opacity 
+            // from 1 (visible) to 0 (invisible). The CSS transition handles the rest!
+            element.classList.add('fade-out');
+            
+            // Optional: Remove the element completely after the fade is done
+            setTimeout(() => {
+                element.textContent = "Gone!";
+                element.classList.remove('fade-out');
+                element.classList.add('text-gray-600', 'text-xl'); // Change style slightly
+            }, 4000); // 4000ms matches the 4s transition time
+        }
+    </script>
+    <br>
+ <b 
+        id="fadingText" 
+        class="text-6xl md:text-8xl font-extrabold text-white cursor-pointer select-none p-8 rounded-xl shadow-lg hover:shadow-2xl transition duration-300"
+        onmouseup="startFade(this)">
+        Hold down, then release
+  </b>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Growth on Mouseout</title>
+</head>
+<body>
+
+    <div >
+        <!-- Main Interactive Element -->
+        <p id="Growth" align="center"
+           onmouseover="handleMouseOver()" 
+           onmouseout="handleMouseOut()" 
+           style="transform-origin: center center;"> 
+                      Hover and Move Away!
+        </p>
+
+      
+    </div>
+
+    <script>
+        // Get the element reference
+        const textElement = document.getElementById('Growth');
+
+        // Function to make the text GROW (called onmouseout)
+        function handleMouseOut() {
+            // Apply a larger scale (1.2 times the original size)
+            textElement.style.transform = 'scale(1.2)';
+        }
+
+        // Function to make the text SHRINK back (called onmouseover)
+        function handleMouseOver() {
+            // Reset to original scale
+            textElement.style.transform = 'scale(1.0)';
+        }
+    </script>
+</body>
+</html>

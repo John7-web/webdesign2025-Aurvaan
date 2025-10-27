@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom font import and basic styling */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom class for the button effect */
+        .btn-shadow {
+            box-shadow: 0 6px 0 0 #581c87; /* Purple shadow */
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+        .btn-shadow:active {
+            transform: translateY(2px);
+            box-shadow: 0 4px 0 0 #581c87;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 min-h-screen flex items-center justify-center p-4">
+
+    <div class="max-w-md w-full bg-gray-800 p-8 rounded-xl shadow-2xl border border-purple-700/50">
+        <!-- Header -->
+        <h1 class="text-3xl font-extrabold text-white mb-4 text-center">The Horse Legion Awaits</h1>
+      
+
+        <!-- Dynamic Message Box -->
+        <div id="message" class="hidden p-3 bg-red-900/40 text-sm font-medium text-red-400 rounded-lg mb-6 border border-red-700/50">
+            <!-- Message content will be added by JS -->
+        </div>
+
+        <!-- Button -->
+        <button
+            id="openTabsButton"
+            onclick="open121Tabs()"
+            class="w-full text-white font-bold py-3 px-4 rounded-xl text-lg bg-purple-600 hover:bg-purple-700 transition duration-150 ease-in-out btn-shadow focus:outline-none focus:ring-4 focus:ring-purple-500 focus:ring-opacity-50"
+        >
+            Horse
+        </button>
+
+        <!-- Image Preview (Optional, for context) -->
+        <div class="mt-8">
+            <p class="text-gray-500 text-sm mb-3 text-center"></p>
+            <img 
+                src="https://thumbs.dreamstime.com/b/brown-icelandic-horse-facing-camera-semiwild-flowing-full-mane-frontal-view-portrait-perfect-symmetry-73667093.jpg" 
+                alt="A beautiful brown Icelandic horse" 
+                class="w-full h-auto rounded-lg shadow-lg object-cover border border-gray-700/50"
+                onerror="this.onerror=null;this.src='https://placehold.co/400x300/374151/D1D5DB?text=Image+Unavailable';"
+            >
+        </div>
+    </div>
+
+    <script>
+        // Helper function to update the message box and button state
+        function updateMessage(tabsOpened, numTabs) {
+            const messageElement = document.getElementById('message');
+            const button = document.getElementById('openTabsButton');
+
+            messageElement.classList.remove('hidden');
+            button.disabled = false;
+            button.textContent = 'Open 121 Horse Tabs (Slowed)!'; // Reset button text
+
+            if (tabsOpened < numTabs) {
+                // Warning/Error case
+                messageElement.classList.remove('bg-green-900/40', 'text-green-400', 'border-green-700/50');
+                messageElement.classList.add('bg-red-900/40', 'text-red-400', 'border-red-700/50');
+                messageElement.textContent = `Attempted to open ${numTabs} tabs with a 500ms delay between each. Your browser's popup blocker likely stopped the rest after opening ${tabsOpened}. You may need to disable the blocker for this site.`;
+            } else {
+                // Success case
+                messageElement.classList.remove('bg-red-900/40', 'text-red-400', 'border-red-700/50');
+                messageElement.classList.add('bg-green-900/40', 'text-green-400', 'border-green-700/50');
+                messageElement.textContent = `${tabsOpened} tabs successfully opened! Enjoy the symmetry.`;
+            }
+        }
+
+        /**
+         * The core function to open multiple tabs with a delay.
+         * Note: The browser's popup blocker will likely intervene after the first few tabs, 
+         * regardless of the delay.
+         */
+        function open121Tabs() {
+            const url = "https://thumbs.dreamstime.com/b/brown-icelandic-horse-facing-camera-semiwild-flowing-full-mane-frontal-view-portrait-perfect-symmetry-73667093.jpg";
+            const numTabs = 121; // Now 121 tabs
+            const delayMs = 500; // 500 milliseconds delay between each tab
+            let tabsOpened = 0;
+            const button = document.getElementById('openTabsButton');
+
+            // Prepare UI for execution
+            document.getElementById('message').classList.add('hidden');
+            button.disabled = true;
+            button.textContent = `Opening tabs... (0/${numTabs})`;
+            
+            // Loop to schedule tab opening with increasing delays
+            for (let i = 0; i < numTabs; i++) {
+                setTimeout(() => {
+                    // Try to open a new tab
+                    const newWindow = window.open(url, '_blank');
+                    
+                    if (newWindow) {
+                        tabsOpened++;
+                    } 
+
+                    // Update button progress text
+                    button.textContent = `Opening tabs... (${i + 1}/${numTabs})`;
+
+                    // After the last iteration, update the final message.
+                    if (i === numTabs - 1) {
+                        // Wait a moment for the last tab to try and open
+                        setTimeout(() => updateMessage(tabsOpened, numTabs), 500); 
+                    }
+                }, i * delayMs); // Delay is 0ms, 500ms, 1000ms, 1500ms, etc.
+            }
+        }
+    </script>
+</body>
+</html>
