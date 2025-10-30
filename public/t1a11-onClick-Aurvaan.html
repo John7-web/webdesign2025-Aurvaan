@@ -186,3 +186,41 @@ function myMove() {
     </script>
 </body>
 </html>
+   <div id="text-container" 
+         onclick="toggleBorder(this)"
+         style="
+           
+        
+            cursor: pointer;
+            user-select: none;
+            /* Initial state: Transparent border to prevent layout shift when border is added */
+            border: 4px solid transparent; 
+            border-radius: 10px;
+        width: fit-content; 
+    
+         ">
+        Click Me to Add/Remove the Border!
+    </div>
+
+    <script>
+        /**
+         * Toggles a solid border on and off for the clicked element.
+         * @param {HTMLElement} element - The element that was clicked (passed via 'this' in onclick).
+         */
+        function toggleBorder(element) {
+            // Define the border styles
+            const activeBorder = '4px solid #F97316'; // Orange color border
+            const inactiveBorder = '4px solid transparent'; // Transparent border
+
+            // Check the current border style to determine the next state
+            if (element.style.border === activeBorder) {
+                // If it currently has the active border, remove it (set to inactive)
+                element.style.border = inactiveBorder;
+                element.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.05)';
+            } else {
+                // If it doesn't have the active border, add it
+                element.style.border = activeBorder;
+                element.style.boxShadow = '0 0 15px rgba(249, 115, 22, 0.6)';
+            }
+        }
+    </script>

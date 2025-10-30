@@ -33,6 +33,36 @@
     restartBtn: document.getElementById('restartBtn')
   };
 
+  // optional upload element for superman image
+  const superUploadInput = document.getElementById('superUpload');
+  if(superUploadInput){
+    superUploadInput.addEventListener('change', (ev) => {
+      const f = ev.target.files && ev.target.files[0];
+      if(!f) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        supermanImgLoaded = false;
+        supermanImg.src = reader.result;
+      };
+      reader.readAsDataURL(f);
+    });
+  }
+
+  // optional upload for batman image
+  const batmanUploadInput = document.getElementById('batmanUpload');
+  if(batmanUploadInput){
+    batmanUploadInput.addEventListener('change', (ev) => {
+      const f = ev.target.files && ev.target.files[0];
+      if(!f) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        batmanImgLoaded = false;
+        batmanImg.src = reader.result;
+      };
+      reader.readAsDataURL(f);
+    });
+  }
+
   let running = false;
   let lastTime = 0;
 
@@ -42,6 +72,12 @@
   supermanImg.onload = () => { supermanImgLoaded = true; };
   supermanImg.onerror = () => { supermanImgLoaded = false; };
   supermanImg.src = 'superman.png';
+
+  // batman image (can be uploaded at runtime)
+  const batmanImg = new Image();
+  let batmanImgLoaded = false;
+  batmanImg.onload = () => { batmanImgLoaded = true; };
+  batmanImg.onerror = () => { batmanImgLoaded = false; };
 
   function rand(min, max) { return Math.random() * (max - min) + min; }
   function dist(a, b) { const dx = a.x - b.x; const dy = a.y - b.y; return Math.sqrt(dx*dx + dy*dy); }
@@ -319,6 +355,9 @@
       if(p.kind === 'superman' && supermanImgLoaded){
         const size = Math.max(p.r*3, 24);
         ctx.drawImage(supermanImg, p.x - size/2, p.y - size/2, size, size);
+      } else if(p.kind === 'batman' && batmanImgLoaded){
+        const size = Math.max(p.r*3, 24);
+        ctx.drawImage(batmanImg, p.x - size/2, p.y - size/2, size, size);
       } else {
         // draw shape
         drawShape(p.x, p.y, p.r + (p.kind ? 2 : 0), p.shape || 'circle', p.color || '#eee');
@@ -327,7 +366,7 @@
       ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(p.x - p.r, p.y - p.r - 8, p.r*2, 4);
       ctx.fillStyle = '#76ff7a'; ctx.fillRect(p.x - p.r, p.y - p.r - 8, (p.hp/200)*p.r*2, 4);
       // label for heroes (Batman keeps B; Superman label hidden when image present)
-      if(p.kind){ ctx.fillStyle = p.kind==='superman' ? '#fff' : '#ffd'; ctx.font = '12px sans-serif'; ctx.textAlign='center'; if(!(p.kind==='superman' && supermanImgLoaded)) ctx.fillText(p.kind==='superman' ? 'S' : 'B', p.x, p.y+4); }
+  if(p.kind){ ctx.fillStyle = p.kind==='superman' ? '#fff' : '#ffd'; ctx.font = '12px sans-serif'; ctx.textAlign='center'; if(!(p.kind==='superman' && supermanImgLoaded) && !(p.kind==='batman' && batmanImgLoaded)) ctx.fillText(p.kind==='superman' ? 'S' : 'B', p.x, p.y+4); }
       // draw player number above the player for identification
       ctx.font = '11px monospace';
       ctx.textAlign = 'center';
