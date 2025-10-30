@@ -63,6 +63,18 @@
     });
   }
 
+  // allow drag-and-drop anywhere on the page to set the Batman image quickly
+  window.addEventListener('dragover', (e)=>{ e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; });
+  window.addEventListener('drop', (e)=>{
+    e.preventDefault();
+    const f = e.dataTransfer.files && e.dataTransfer.files[0];
+    if(!f) return;
+    // if filename contains 'bat' assume it's the batman image, otherwise use it for batman by default
+    const reader = new FileReader();
+    reader.onload = () => { batmanImgLoaded = false; batmanImg.src = reader.result; };
+    reader.readAsDataURL(f);
+  });
+
   let running = false;
   let lastTime = 0;
 
@@ -78,6 +90,8 @@
   let batmanImgLoaded = false;
   batmanImg.onload = () => { batmanImgLoaded = true; };
   batmanImg.onerror = () => { batmanImgLoaded = false; };
+  // Try to load a local file named `batman.png` placed next to this HTML/JS
+  batmanImg.src = 'batman.png';
 
   function rand(min, max) { return Math.random() * (max - min) + min; }
   function dist(a, b) { const dx = a.x - b.x; const dy = a.y - b.y; return Math.sqrt(dx*dx + dy*dy); }
