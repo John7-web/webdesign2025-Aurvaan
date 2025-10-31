@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width,initial-scale=1" />
+		<title>RPS Battleground Simulator</title>
+		<style>
+			:root{--bg:#0f1724;--card:#0b1220;--accent:#1e90ff;--danger:#ff4d4d;--muted:#94a3b8}
+			html,body{height:100%;margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:linear-gradient(180deg,#071027 0%, #0b1530 100%);color:#e6eef8}
+			.wrap{max-width:980px;margin:32px auto;padding:20px}
+			header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+			h1{font-size:20px;margin:0}
+			.board{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+			.panel{background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);padding:14px;border-radius:12px;border:1px solid rgba(255,255,255,0.03)}
+			.player-row{display:flex;align-items:center;gap:12px}
+			.avatar{width:84px;height:84px;border-radius:12px;background:linear-gradient(180deg,#122033,#0e1a2b);display:flex;align-items:center;justify-content:center;font-size:40px}
+			.info{flex:1}
+			.name{font-weight:600}
+			.health-wrap{margin-top:8px}
+			.health{height:14px;background:#0b1220;border-radius:6px;overflow:hidden;border:1px solid rgba(255,255,255,0.03)}
+			.health > .bar{height:100%;background:linear-gradient(90deg,var(--accent),#3b82f6);width:100%;transition:width 400ms ease}
+			.health.enemy > .bar{background:linear-gradient(90deg,#ff6b6b,#ff4d4d)}
+			.meta{display:flex;justify-content:space-between;color:var(--muted);font-size:13px;margin-top:6px}
+			.controls{grid-column:1 / -1;margin-top:18px;display:flex;align-items:center;gap:12px;justify-content:center}
+			.btn{background:#0f1724;border:1px solid rgba(255,255,255,0.04);color:#e6eef8;padding:10px 14px;border-radius:8px;cursor:pointer;font-weight:600}
+			.btn:disabled{opacity:.45;cursor:default}
+			.choices{display:flex;gap:8px}
+			.choice{padding:12px 16px;border-radius:10px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.02);cursor:pointer}
+			.choice:hover{transform:translateY(-3px)}
+			.center-panel{display:flex;flex-direction:column;align-items:center;justify-content:center}
+			.big-result{font-size:16px;font-weight:700;margin-top:6px}
+			.log{margin-top:12px;background:rgba(255,255,255,0.02);padding:10px;border-radius:8px;min-height:66px;color:var(--muted);font-size:14px}
+			.flash{animation:flash 220ms ease}
+			@keyframes flash{0%{transform:scale(1)}50%{transform:scale(1.04)}100%{transform:scale(1)}}
+			.hit{animation:hit 300ms ease}
+			@keyframes hit{0%{transform:translateX(0)}25%{transform:translateX(8px)}50%{transform:translateX(-8px)}100%{transform:translateX(0)}}
+			footer{margin-top:18px;color:var(--muted);font-size:13px;text-align:center}
+			.round{background:rgba(255,255,255,0.03);padding:6px 10px;border-radius:999px;font-weight:700}
+		</style>
+	</head>
+	<body>
+		<div class="wrap">
+			<header>
+				<h1>RPS Battleground Simulator</h1>
+				<div class="round">Round <span id="roundNum">1</span></div>
+			</header>
+
+			<main class="board">
+				<section class="panel" id="playerPanel">
+					<div class="player-row">
+						<div class="avatar" id="playerAvatar">🧑‍🚀</div>
+						<div class="info">
+							<div class="name">You</div>
+							<div class="health-wrap">
+								<div class="health" id="playerHealth">
+									<div class="bar" id="playerBar" style="width:100%"></div>
+								</div>
+								<div class="meta"><span id="playerHpText">100 / 100</span><span id="playerStatus"></span></div>
+							</div>
+						</div>
+					</div>
+				</section>
+
+				<section class="panel" id="enemyPanel">
+					<div class="player-row">
+						<div class="avatar" id="enemyAvatar">🤖</div>
+						<div class="info">
+							<div class="name">Enemy</div>
+							<div class="health-wrap">
+								<div class="health enemy" id="enemyHealth">
+									<div class="bar" id="enemyBar" style="width:100%"></div>
+								</div>
+								<div class="meta"><span id="enemyHpText">100 / 100</span><span id="enemyStatus"></span></div>
+							</div>
+						</div>
+					</div>
+				</section>
+
+				<div class="panel center-panel" style="grid-column:1 / -1;text-align:center">
+					<div class="big-result" id="resultText">Choose your move</div>
+					<div style="margin-top:8px" id="choiceDisplay">You: — &nbsp; | &nbsp; Enemy: —</div>
+					<div class="log" id="log">First to reduce opponent to 0 HP wins. Ties deal no damage.</div>
+					<div class="controls">
+						<div class="choices">
+							<button class="choice btn" data-choice="rock">✊ Rock</button>
+							<button class="choice btn" data-choice="paper">✋ Paper</button>
+							<button class="choice btn" data-choice="scissors">✌️ Scissors</button>
+						</div>
+						<button class="btn" id="resetBtn">Reset</button>
+					</div>
+				</div>
+			</main>
+
+			<footer>Simple simulator — damage is random. Built for classroom demo.</footer>
+		</div>
+
+		<script>
+			// Game contract:
+			// - Inputs: player's choice (rock/paper/scissors)
+			// - Outputs: update UI health bars, round number, and winner/loser text
+			// - Error modes: buttons disabled during animation; reset clears state
+
+			const choices = ['rock','paper','scissors'];
+			let playerHp = 100, enemyHp = 100, round = 1;
+			const maxHp = 100;
+
+			const playerBar = document.getElementById('playerBar');
+			const enemyBar = document.getElementById('enemyBar');
+			const playerHpText = document.getElementById('playerHpText');
+			const enemyHpText = document.getElementById('enemyHpText');
+			const resultText = document.getElementById('resultText');
+			const choiceDisplay = document.getElementById('choiceDisplay');
+			const log = document.getElementById('log');
+			const roundNum = document.getElementById('roundNum');
+			const playerPanel = document.getElementById('playerPanel');
+			const enemyPanel = document.getElementById('enemyPanel');
+			const choiceButtons = Array.from(document.querySelectorAll('.choice'));
+			const resetBtn = document.getElementById('resetBtn');
+
+			function computerChoice(){ return choices[Math.floor(Math.random()*choices.length)]; }
+
+			function compare(a,b){
+				if(a===b) return 'tie';
+				if((a==='rock'&&b==='scissors')||(a==='scissors'&&b==='paper')||(a==='paper'&&b==='rock')) return 'player';
+				return 'enemy';
+			}
+
+			function damageForWinner(winner){
+				// winner deals random damage 10..28
+				return 10 + Math.floor(Math.random()*19);
+			}
+
+			function updateUI(){
+				playerBar.style.width = Math.max(0, playerHp) + '%';
+				enemyBar.style.width = Math.max(0, enemyHp) + '%';
+				playerHpText.textContent = Math.max(0, playerHp) + ' / ' + maxHp;
+				enemyHpText.textContent = Math.max(0, enemyHp) + ' / ' + maxHp;
+				roundNum.textContent = round;
+			}
+
+			function writeLog(text){
+				log.textContent = text;
+			}
+
+			function disableChoices(b){ choiceButtons.forEach(btn=>btn.disabled=b); }
+
+			function animateHit(target){
+				target.classList.add('hit');
+				setTimeout(()=>target.classList.remove('hit'),350);
+			}
+
+			function playRound(playerChoice){
+				if(playerHp<=0 || enemyHp<=0) return;
+				disableChoices(true);
+				const comp = computerChoice();
+				const winner = compare(playerChoice, comp);
+
+				choiceDisplay.textContent = `You: ${playerChoice}  |  Enemy: ${comp}`;
+
+				if(winner==='tie'){
+					resultText.textContent = "It's a tie — no damage.";
+					writeLog(`Round ${round}: Tie. No damage.`);
+					// small flash
+					playerPanel.classList.add('flash');
+					enemyPanel.classList.add('flash');
+					setTimeout(()=>{playerPanel.classList.remove('flash');enemyPanel.classList.remove('flash');disableChoices(false)},300);
+				} else if(winner==='player'){
+					const dmg = damageForWinner('player');
+					enemyHp = Math.max(0, enemyHp - dmg);
+					resultText.textContent = `You win the round — dealt ${dmg} damage!`;
+					writeLog(`Round ${round}: You (${playerChoice}) beat Enemy (${comp}) — enemy -${dmg} HP.`);
+					animateHit(enemyPanel);
+					setTimeout(()=>{updateUI(); checkEnd(); disableChoices(false)},420);
+				} else {
+					const dmg = damageForWinner('enemy');
+					playerHp = Math.max(0, playerHp - dmg);
+					resultText.textContent = `Enemy wins the round — you take ${dmg} damage.`;
+					writeLog(`Round ${round}: Enemy (${comp}) beat You (${playerChoice}) — you -${dmg} HP.`);
+					animateHit(playerPanel);
+					setTimeout(()=>{updateUI(); checkEnd(); disableChoices(false)},420);
+				}
+				round++;
+				updateUI();
+			}
+
+			function checkEnd(){
+				if(enemyHp<=0 && playerHp<=0){
+					resultText.textContent = "Draw — both fighters fell!";
+					disableChoices(true);
+				} else if(enemyHp<=0){
+					resultText.textContent = "You win the battle!";
+					writeLog(`Battle over in ${round-1} rounds — You Win.`);
+					disableChoices(true);
+				} else if(playerHp<=0){
+					resultText.textContent = "You were defeated...";
+					writeLog(`Battle over in ${round-1} rounds — Enemy Wins.`);
+					disableChoices(true);
+				}
+			}
+
+			choiceButtons.forEach(btn=>btn.addEventListener('click', e=>{
+				const c = e.currentTarget.getAttribute('data-choice');
+				playRound(c);
+			}));
+
+			resetBtn.addEventListener('click', ()=>{
+				playerHp = maxHp; enemyHp = maxHp; round = 1;
+				updateUI();
+				resultText.textContent = 'Choose your move';
+				choiceDisplay.textContent = 'You: —  |  Enemy: —';
+				writeLog('New battle started.');
+				disableChoices(false);
+			});
+
+			// initialize
+			updateUI();
+			writeLog('Ready: click Rock, Paper, or Scissors to begin.');
+		</script>
+	</body>
+</html>
+
