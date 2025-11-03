@@ -1,0 +1,181 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<title>RPS Battleground</title>
+	<style>
+		html,body{height:100%;margin:0}
+		canvas{display:block;background:#222}
+		#ui{position:fixed;left:8px;top:8px;z-index:20;color:#fff;font-family:sans-serif}
+		#ui button{margin-right:6px}
+	</style>
+</head>
+<body>
+	<div id="ui">
+		<button id="start">Start</button>
+		<button id="pause">Pause</button>
+		<button id="reset">Reset</button>
+		<label style="margin-left:8px">Counts: <span id="counts">-</span></label>
+	</div>
+	<canvas id="stage"></canvas>
+
+	<script>
+	(function(){
+		const canvas = document.getElementById('stage');
+		const ctx = canvas.getContext('2d');
+		function resize(){ canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+		window.addEventListener('resize', resize); resize();
+
+		const UI = { start: document.getElementById('start'), pause: document.getElementById('pause'), reset: document.getElementById('reset'), counts: document.getElementById('counts') };
+
+		// images (optional - place rock.png paper.png scissors.png next to this file)
+		const imgRock = new Image(); imgRock.src = 'rock.png'; let rockLoaded=false; imgRock.onload = ()=>rockLoaded=true; imgRock.onerror = ()=>rockLoaded=false;
+		const imgPaper = new Image(); imgPaper.src = 'paper.png'; let paperLoaded=false; imgPaper.onload = ()=>paperLoaded=true; imgPaper.onerror = ()=>paperLoaded=false;
+		const imgScissor = new Image(); imgScissor.src = 'scissors.png'; let scissorLoaded=false; imgScissor.onload = ()=>scissorLoaded=true; imgScissor.onerror = ()=>scissorLoaded=false;
+
+		function rand(min,max){ return Math.random()*(max-min)+min; }
+		function dist(a,b){ const dx=a.x-b.x, dy=a.y-b.y; return Math.sqrt(dx*dx+dy*dy); }
+
+		const entities = [];
+		let running = true;
+
+		// spawn random amounts for each type
+		function reset(){ entities.length = 0; const w = canvas.width, h = canvas.height;
+			const countRock = Math.floor(rand(8, 28));
+			const countPaper = Math.floor(rand(8, 28));
+			const countScissor = Math.floor(rand(8, 28));
+
+			for(let i=0;i<countRock;i++) entities.push(make('rock'));
+			for(let i=0;i<countPaper;i++) entities.push(make('paper'));
+			for(let i=0;i<countScissor;i++) entities.push(make('scissor'));
+			UI.counts.textContent = `R:${countRock} P:${countPaper} S:${countScissor} — total ${entities.length}`;
+		}
+
+		function make(type){
+			const r = Math.floor(rand(10,22));
+			const sp = rand(0.4, 1.8); // random speed multiplier
+			return { type, x: rand(r, canvas.width-r), y: rand(r, canvas.height-r), vx: rand(-0.5,0.5), vy: rand(-0.5,0.5), r, speed: sp, alive:true };
+		}
+
+		// who beats who
+		const beats = { rock: 'scissor', scissor: 'paper', paper: 'rock' };
+
+		function update(dt){
+			// behaviors
+			for(const e of entities){ if(!e.alive) continue;
+				// find nearest prey (thing this entity chases) and nearest predator (thing it flees)
+				const preyType = beats[e.type];
+				// predator is the thing that beats e
+				const predatorType = Object.keys(beats).find(k => beats[k] === e.type);
+
+				let nearestPrey = null, nearestPred = null; let bestPrey=1e9, bestPred=1e9;
+				for(const o of entities){ if(!o.alive || o===e) continue; const d = dist(e,o);
+					if(o.type === preyType && d < bestPrey){ bestPrey = d; nearestPrey = o; }
+					if(o.type === predatorType && d < bestPred){ bestPred = d; nearestPred = o; }
+				}
+
+				// flee if predator is fairly close (priority)
+				if(nearestPred && bestPred < 180){
+					const ang = Math.atan2(e.y - nearestPred.y, e.x - nearestPred.x);
+					e.vx = Math.cos(ang) * e.speed * 1.6;
+					e.vy = Math.sin(ang) * e.speed * 1.6;
+				} else if(nearestPrey){
+					// chase prey
+					const ang = Math.atan2(nearestPrey.y - e.y, nearestPrey.x - e.x);
+					e.vx = Math.cos(ang) * e.speed * 1.2;
+					e.vy = Math.sin(ang) * e.speed * 1.2;
+				} else {
+					// wander
+					e.vx += rand(-0.08,0.08);
+					e.vy += rand(-0.08,0.08);
+					// clamp
+					const sp = Math.sqrt(e.vx*e.vx + e.vy*e.vy);
+					const max = e.speed * 2.0;
+					if(sp > max){ e.vx = e.vx/sp * max; e.vy = e.vy/sp * max; }
+				}
+			}
+
+			// integrate
+			for(const e of entities){ if(!e.alive) continue; e.x += e.vx * dt; e.y += e.vy * dt;
+				// bounds
+				if(e.x < e.r){ e.x = e.r; e.vx *= -0.6; }
+				if(e.x > canvas.width - e.r){ e.x = canvas.width - e.r; e.vx *= -0.6; }
+				if(e.y < e.r){ e.y = e.r; e.vy *= -0.6; }
+				if(e.y > canvas.height - e.r){ e.y = canvas.height - e.r; e.vy *= -0.6; }
+			}
+
+			// collisions -> resolution
+			for(let i=0;i<entities.length;i++){
+				const a = entities[i]; if(!a.alive) continue;
+				for(let j=i+1;j<entities.length;j++){
+					const b = entities[j]; if(!b.alive) continue;
+					const d = dist(a,b); if(d <= a.r + b.r){
+						if(a.type === b.type){
+							// simple bounce
+							const nx = (b.x - a.x)/Math.max(d,0.001), ny = (b.y - a.y)/Math.max(d,0.001);
+							const overlap = (a.r + b.r) - d + 0.5;
+							a.x -= nx * overlap * 0.5; a.y -= ny * overlap * 0.5;
+							b.x += nx * overlap * 0.5; b.y += ny * overlap * 0.5;
+							const va = a.vx*nx + a.vy*ny; const vb = b.vx*nx + b.vy*ny; const imp = (va - vb) * 0.5;
+							a.vx -= imp * nx; a.vy -= imp * ny; b.vx += imp * nx; b.vy += imp * ny;
+						} else {
+							// decide winner by RPS
+							if(beats[a.type] === b.type){ // a beats b
+								b.alive = false; // b loses
+								// winner nudge
+								a.vx *= 1.08; a.vy *= 1.08; a.r = Math.min(40, a.r + 0.6);
+							} else if(beats[b.type] === a.type){ // b beats a
+								a.alive = false;
+								b.vx *= 1.08; b.vy *= 1.08; b.r = Math.min(40, b.r + 0.6);
+							} else {
+								// fallback: bounce
+								const nx = (b.x - a.x)/Math.max(d,0.001), ny = (b.y - a.y)/Math.max(d,0.001);
+								const overlap = (a.r + b.r) - d + 0.5;
+								a.x -= nx * overlap * 0.5; a.y -= ny * overlap * 0.5;
+								b.x += nx * overlap * 0.5; b.y += ny * overlap * 0.5;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		function draw(){ ctx.clearRect(0,0,canvas.width,canvas.height);
+			for(const e of entities){ if(!e.alive) continue;
+				if(e.type === 'rock'){
+					if(rockLoaded) ctx.drawImage(imgRock, e.x - e.r, e.y - e.r, e.r*2, e.r*2);
+					else{ ctx.fillStyle='#9aa'; ctx.beginPath(); ctx.arc(e.x,e.y,e.r,0,Math.PI*2); ctx.fill(); }
+				} else if(e.type === 'paper'){
+					if(paperLoaded) ctx.drawImage(imgPaper, e.x - e.r, e.y - e.r, e.r*2, e.r*2);
+					else{ ctx.fillStyle='#eee'; ctx.fillRect(e.x - e.r, e.y - e.r, e.r*2, e.r*2); }
+				} else if(e.type === 'scissor'){
+					if(scissorLoaded) ctx.drawImage(imgScissor, e.x - e.r, e.y - e.r, e.r*2, e.r*2);
+					else{ ctx.fillStyle='#f96'; ctx.beginPath(); ctx.moveTo(e.x,e.y-e.r); ctx.lineTo(e.x-e.r,e.y+e.r); ctx.lineTo(e.x+e.r,e.y+e.r); ctx.closePath(); ctx.fill(); }
+				}
+			}
+			// counts
+			const alive = entities.filter(e=>e.alive);
+			const rc = alive.filter(e=>e.type==='rock').length;
+			const pc = alive.filter(e=>e.type==='paper').length;
+			const sc = alive.filter(e=>e.type==='scissor').length;
+			UI.counts.textContent = `R:${rc} P:${pc} S:${sc} — total ${alive.length}`;
+		}
+
+		// loop
+		let last = performance.now();
+		function loop(ts){ if(!running){ last = ts; requestAnimationFrame(loop); return;} const dt = Math.min(40, ts - last) * 0.06; update(dt); draw(); last = ts; requestAnimationFrame(loop); }
+
+		UI.start.addEventListener('click', ()=> running = true);
+		UI.pause.addEventListener('click', ()=> running = false);
+		UI.reset.addEventListener('click', ()=>{ reset(); });
+
+		// initialize
+		reset(); last = performance.now(); requestAnimationFrame(loop);
+
+		// expose for debugging
+		window.rps = { entities, reset };
+	})();
+	</script>
+</body>
+</html>
+
