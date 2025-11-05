@@ -1,0 +1,166 @@
+<h1 align="center">t2a12-colour-Aurvaan</h1>
+make sure you have 8 items about color design on webpages. to get started you might to look at
+<a href="https://www.canva.com/colors/color-wheel/">https://www.canva.com/colors/color-wheel/</a>
+
+<style>
+  /* Example CSS variables (copy into your site's root or stylesheet) */
+  :root{
+    --bg: #ffffff;                /* page background */
+    --text: #212529;              /* main text (dark gray) */
+    --primary: #007BFF;           /* primary / CTA (blue) */
+    --muted: #6C757D;             /* secondary / muted text */
+    --success: #28A745;           /* success */
+    --danger: #DC3545;            /* error / destructive */
+    --warning: #FD7E14;           /* warning / attention */
+    --accent: #20C997;            /* accent / teal */
+  }
+
+ 
+
+  /* Visual swatches */
+  .swatches{display:flex;flex-wrap:wrap;gap:12px;margin:18px 0}
+  .swatch{width:140px;border-radius:6px;overflow:hidden;border:1px solid #e6e6e6}
+  .swatch .block{height:64px}
+  .swatch .meta{padding:8px;font-family:Arial,Helvetica,sans-serif;font-size:13px;background:#fff}
+
+  /* Research section styles */
+
+  /* harmonies layout */
+  .harmonies{display:flex;flex-wrap:wrap;gap:24px;align-items:stretch;justify-content:center;margin-top:12px}
+  /* limit card growth so a single card doesn't expand to full width */
+  .harmony-card{flex:1 1 300px;min-width:260px;max-width:400px;background:#fff;border-radius:8px;padding:15px;box-shadow:0 1px 2px rgba(0,0,0,0.04);border:1px solid #efefef;display:flex;flex-direction:column}
+  .harmony{margin-bottom:8px;flex-grow:1}
+  .harmony h3{margin:0 0 6px 0}
+  /* make images smaller and consistent across the page */
+  img{max-width:220px;height:auto;display:inline-block}
+  .harmony img{max-width:320px;width:100%;height:auto;border-radius:6px;display:block;margin-top:8px}
+  /* concept cards layout (warm/cool, shades/tints, HSL) */
+  .color-concepts{display:flex;flex-wrap:wrap;gap:24px;margin-top:20px;align-items:stretch;justify-content:center}
+  .concept-card{flex:1 1 300px;min-width:260px;max-width:400px;background:#fff;border-radius:8px;padding:15px;border:1px solid #efefef;box-shadow:0 1px 2px rgba(0,0,0,0.03)}
+  .concept-card h2{margin-top:0;font-size:18px}
+  .concept-card p{margin:6px 0}
+</style>
+
+
+
+  <h2>Top colours used on webpages (and why)</h2>
+  <ol>
+    <li><strong>Blue</strong> - trust, links, and primary CTAs. Common because users expect blue to be clickable and it reads well on white backgrounds.</li>
+    <li><strong>White / Off-white</strong> - backgrounds and negative space; maximizes readability and makes other colours pop.</li>
+    <li><strong>Black / Dark Gray</strong> - primary text for legibility.</li>
+    <li><strong>Gray neutrals</strong> - UI chrome, borders, and secondary text to create hierarchy without competing with main content.</li>
+    <li><strong>Red / Orange / Yellow</strong> - alerts, errors, and attention. Red for destructive actions or errors; orange/yellow for warnings/promotions.</li>
+    <li><strong>Green / Teal</strong> - success states and positive actions; associated with safety and 'go'.</li>
+    <li><strong>Purple / Pink</strong> - accents for creative or premium brands; used sparingly for emphasis.</li>
+    <li><strong>Gradients & multi-colour accents</strong> - used in hero areas and branding for depth and modern look; ensure text contrast still works.</li>
+  </ol>
+
+  
+    <h2>Color harmonies</h2>
+    <p>Color harmonies are ways of picking colours that look balanced together.</p>
+
+    <div class="harmonies">
+      <div class="harmony-card">
+        <div class="harmony">
+          <h3>Complementary</h3>
+          <p>Two colours opposite each other on the colour wheel.</p>
+          <div class="swatches">
+            <div class="swatch"><div class="block" style="background:#FF0000"></div><div class="meta">#FF0000 </div></div>
+            <div class="swatch"><div class="block" style="background:#00FFFF"></div><div class="meta">#00FFFF</div></div>
+          </div>
+        </div>
+        <br> <br> <br> <br> <br> <br>
+        <img src="Complementary.png" alt="complementary colors">
+      </div>
+
+      <div class="harmony-card">
+        <div class="harmony">
+          <h3>Monochromatic</h3>
+          <p>Different tints and shades of a single hue.</p>
+          <div class="swatches">
+            <div class="swatch"><div class="block" style="background:#FF7F00"></div><div class="meta">#FF7F00 (dark)</div></div>
+            <div class="swatch"><div class="block" style="background:#FF9F41"></div><div class="meta">#FF9F41 (mid)</div></div>
+            <div class="swatch"><div class="block" style="background:#FFCB99"></div><div class="meta">#FFCB99 (light)</div></div>
+          </div>
+        </div>
+        <img src="Monochromatic.png" alt="monochromatic colors">
+      </div>
+
+      <div class="harmony-card">
+        <div class="harmony">
+          <h3>Analogous</h3>
+          <p>Colours next to each other on the wheel.</p>
+          <div class="swatches">
+            <div class="swatch"><div class="block" style="background:#0000FF"></div><div class="meta">#0000FF</div></div>
+            <div class="swatch"><div class="block" style="background:#0080FF"></div><div class="meta">#0080FF</div></div>
+            <div class="swatch"><div class="block" style="background:#00FFFF"></div><div class="meta">#00FFFF</div></div>
+          </div>
+        </div>
+        <img src="Analogous.png" alt="analogous colors">
+      </div>
+
+      <div class="harmony-card">
+        <div class="harmony">
+          <h3>Triadic</h3>
+          <p>Three colours evenly spaced on the wheel.</p>
+          <div class="swatches">
+            <div class="swatch"><div class="block" style="background:#FF0000"></div><div class="meta">#FF0000</div></div>
+            <div class="swatch"><div class="block" style="background:#0000FF"></div><div class="meta">#0000FF</div></div>
+            <div class="swatch"><div class="block" style="background:#00FF00"></div><div class="meta">#00FF00</div></div>
+          </div>
+        </div>
+        <img src="Triadic.png" alt="triadic colors">
+      </div>
+
+      <div class="harmony-card">
+        <div class="harmony">
+          <h3>Tetradic (double complementary)</h3>
+          <p>Four colours forming two complementary pairs.</p>
+          <div class="swatches">
+            <div class="swatch"><div class="block" style="background:#FF0000"></div><div class="meta">#FF0000</div></div>
+            <div class="swatch"><div class="block" style="background:#8000FF"></div><div class="meta">#8000FF</div></div>
+            <div class="swatch"><div class="block" style="background:#80FF00"></div><div class="meta">#80FF00</div></div>
+            <div class="swatch"><div class="block" style="background:#00FFFF"></div><div class="meta">#00FFFF</div></div>
+          </div>
+        </div>
+        <img src="Tetradic.png" alt="tetradic colors">
+      </div>
+    </div>
+ 
+  <div class="color-concepts">
+    <div class="concept-card">
+      <h2>Warm vs Cool colours</h2>
+      <p>Colours are often described as <strong>warm</strong> or <strong>cool</strong>. Warm colours feel energetic, cozy, and attention-grabbing. Cool colours feel calm, trustworthy, and restful.</p>
+      <div class="swatches">
+        <img src="Coolandwarm.png" alt="warm and cool colors" width="400">
+      </div>
+    </div>
+
+    <div class="concept-card">
+      <h2>Shades, Tints and Tones</h2>
+      <p>These are ways to change a base hue:</p>
+      <ul>
+        <li><strong>Tint</strong> - add white to make a lighter version.</li>
+        <li><strong>Shade</strong> - add black to make a darker version.</li>
+        <li><strong>Tone</strong> - add gray (white+black) to reduce saturation.</li>
+      </ul>
+      <div class="swatches">
+        <img src="shade.png" width="400">
+      </div>
+    </div>
+
+    <div class="concept-card">
+      <h2>Hue, Saturation &amp; Luminance (HSL)</h2>
+      <p>HSL is a way to describe colour:</p>
+      <ul>
+        <li><strong>Hue</strong> - the position on the colour wheel</li>
+        <li><strong>Saturation</strong> - how pure or vivid the colour is </li>
+        <li><strong>Luminance</strong> - how light or dark the colour is </li>
+      </ul>
+      <div class="swatches">
+        <img src="Hue.png" alt="Hue, Saturation and Luminance" width="400">
+      </div>
+    </div>
+  </div>
+
+
