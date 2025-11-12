@@ -1,0 +1,49 @@
+<h1 align="center">t2a13-leet-Aurvaan</h1>
+<li>Ask ChatGPT for a beginner friendly javascript Leet code question an html javascript single file answer without any css</li>
+<li>Show your pompt here</li>
+give me a beginner friendly javascript Leet code question an html javascript single file answer without any css
+<li>Show the leet question here</li>
+Question: Palindrome Number
+Given an integer x, return true if x is a palindrome, and false otherwise.
+A palindrome is a number that reads the same backward as forward.
+<li>Get the code working here</li>
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Palindrome Number - LeetCode Example</title>
+</head>
+<body>
+  <h2>Palindrome Number (LeetCode #9)</h2>
+
+  <p>Enter a number to check if it is a palindrome.</p>
+
+  <label>Number: </label>
+  <input type="number" id="num" value="121">
+  <br><br>
+  <button onclick="checkPalindrome()">Check Palindrome</button>
+
+  <h3>Result:</h3>
+  <pre id="output"></pre>
+
+  <script>
+    function isPalindrome(x) {
+      const str = x.toString();
+      const reversed = str.split('').reverse().join('');
+      return str === reversed;
+    }
+
+    function checkPalindrome() {
+      const num = Number(document.getElementById("num").value);
+      const result = isPalindrome(num);
+      document.getElementById("output").textContent =
+        result ? `${num} is a palindrome.` : `${num} is not a palindrome.`;
+    }
+  </script>
+</body>
+</html>
+
+<li>Within PRE tags show your version of the leet answer without looking at the actual answer.</li>
+
+<pre>
+    To figure out if a number is a palindrome, we can convert the number to a string, reverse that string, and then compare it to the original string. If they are the same, the number is a palindrome.
+</pre>

@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width,initial-scale=1" />
+		<title>Geometry Dash — Mini Clone</title>
+		<style>
+			:root{--bg:#0f1720;--fg:#eef2ff;--accent:#ff6b6b}
+			html,body{height:100%;margin:0;font-family:system-ui,Segoe UI,Roboto,Arial}
+			body{background:linear-gradient(180deg,var(--bg),#07101a);color:var(--fg);display:flex;align-items:center;justify-content:center}
+			.wrap{width:960px;max-width:96vw;padding:18px}
+			header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+			h1{font-size:18px;margin:0}
+			.controls{display:flex;gap:8px;align-items:center}
+			button{background:var(--accent);border:none;color:white;padding:8px 12px;border-radius:6px;cursor:pointer}
+			.meta{font-size:13px;opacity:.9}
+			canvas{display:block;width:100%;height:360px;background:#071428;border-radius:8px;box-shadow:0 6px 30px rgba(2,6,23,.6);touch-action:none}
+			.hud{display:flex;justify-content:space-between;margin-top:8px}
+			.hint{font-size:13px;color:var(--fg)}
+			.score{font-weight:700;color:var(--accent)}
+			.footer{margin-top:10px;font-size:13px;color:#99a}
+		</style>
+	</head>
+	<body>
+		<div class="wrap">
+			<header>
+				<h1>Geometry Dash — Mini Clone</h1>
+				<div class="controls">
+					<div class="meta">Controls: Space / Click / Tap</div>
+					<button id="restartBtn">Restart</button>
+				</div>
+			</header>
+
+			<canvas id="game" width="960" height="360"></canvas>
+
+			<div class="hud">
+				<div class="hint">Jump over obstacles. The square auto-runs.</div>
+				<div class="score">Score: <span id="score">0</span></div>
+			</div>
+
+			<div class="footer">Tip: Hold space to jump higher in some variations. This simple clone uses fixed jump impulse.</div>
+		</div>
+
+		<script>
+			// Simple Geometry Dash-like game
+			const canvas = document.getElementById('game');
+			const ctx = canvas.getContext('2d');
+			const scoreEl = document.getElementById('score');
+			const restartBtn = document.getElementById('restartBtn');
+
+			const DPR = window.devicePixelRatio || 1;
+			const W = canvas.width;
+			const H = canvas.height;
+			canvas.style.width = '100%';
+			canvas.style.height = '360px';
+			canvas.width = Math.floor(W * DPR);
+			canvas.height = Math.floor(H * DPR);
+			ctx.scale(DPR, DPR);
+
+			// Game state
+			let running = true;
+			let score = 0;
+			let speed = 3; // base world speed
+
+			const player = {
+				x: 80,
+				y: H - 50,
+				w: 32,
+				h: 32,
+				vy: 0,
+				gravity: 0.9,
+				jumpForce: -14,
+				grounded: true,
+				color: '#60a5fa'
+			};
+
+			let obstacles = [];
+			let spawnTimer = 0;
+
+			function reset(){
+				running = true;
+				score = 0;
+				speed = 3;
+				player.y = H - 50;
+				player.vy = 0;
+				player.grounded = true;
+				obstacles = [];
+				spawnTimer = 0;
+				lastTime = performance.now();
+				loop(lastTime);
+			}
+
+			function spawnObstacle(){
+				// random height ground obstacle
+				const h = 24 + Math.random()*48; // 24..72
+				const w = 18 + Math.random()*30; // 18..48
+				const y = H - h - 18; // 18px ground offset
+				obstacles.push({x: W + 20, y, w, h, color: '#ff6b6b'});
+			}
+
+			function update(dt){
+				if(!running) return;
+
+				// Player physics
+				player.vy += player.gravity * (dt/16);
+				player.y += player.vy * (dt/16);
+				if(player.y + player.h >= H - 18){
+					player.y = H - 18 - player.h;
+					player.vy = 0;
+					player.grounded = true;
+				} else {
+					player.grounded = false;
+				}
+
+				// Obstacles movement
+				for(let i=obstacles.length-1;i>=0;i--){
+					const ob = obstacles[i];
+					ob.x -= speed * (dt/16);
+					// offscreen
+					if(ob.x + ob.w < -50) obstacles.splice(i,1);
+					// collision
+					if(rectIntersect(player, ob)){
+						running = false;
+					}
+				}
+
+				// spawn logic
+				spawnTimer -= dt;
+				if(spawnTimer <= 0){
+					spawnObstacle();
+					spawnTimer = 900 + Math.random()*1000 - Math.min(600, score*3); // get faster as score rises
+				}
+
+				// score and difficulty
+				score += dt * 0.01 * (speed/3);
+				if(score > 0 && Math.floor(score) % 10 === 0){
+					// slowly increase speed over time
+					speed = 3 + Math.min(6, Math.floor(score/15));
+				}
+			}
+
+			function rectIntersect(a,b){
+				return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+			}
+
+			function draw(){
+				// clear
+				ctx.fillStyle = '#071428';
+				ctx.fillRect(0,0,W,H);
+
+				// ground
+				ctx.fillStyle = '#0b2433';
+				ctx.fillRect(0, H-18, W, 18);
+
+				// player
+				ctx.fillStyle = player.color;
+				ctx.fillRect(player.x, player.y, player.w, player.h);
+
+				// obstacles
+				for(const ob of obstacles){
+					ctx.fillStyle = ob.color;
+					ctx.fillRect(ob.x, ob.y, ob.w, ob.h);
+				}
+
+				// if not running show overlay
+				if(!running){
+					ctx.fillStyle = 'rgba(3,6,14,0.6)';
+					ctx.fillRect(0,0,W,H);
+					ctx.fillStyle = 'white';
+					ctx.font = '20px system-ui,Segoe UI';
+					ctx.textAlign = 'center';
+					ctx.fillText('Game Over — Click Restart', W/2, H/2 - 6);
+				}
+			}
+
+			let lastTime = performance.now();
+			function loop(now){
+				const dt = Math.min(40, now - lastTime);
+				update(dt);
+				draw();
+				scoreEl.textContent = Math.floor(score);
+				lastTime = now;
+				if(running) requestAnimationFrame(loop);
+			}
+
+			// input
+			function jump(){
+				if(!running) return;
+				if(player.grounded){
+					player.vy = player.jumpForce;
+					player.grounded = false;
+				}
+			}
+
+			window.addEventListener('keydown', e=>{
+				if(e.code === 'Space' || e.key === ' '){
+					e.preventDefault();
+					jump();
+				}
+				if(e.key === 'r' || e.key === 'R') reset();
+			});
+
+			canvas.addEventListener('mousedown', ()=> jump());
+			canvas.addEventListener('touchstart', e=>{ e.preventDefault(); jump(); }, {passive:false});
+
+			restartBtn.addEventListener('click', ()=> reset());
+
+			// start
+			reset();
+		</script>
+	</body>
+</html>
+
