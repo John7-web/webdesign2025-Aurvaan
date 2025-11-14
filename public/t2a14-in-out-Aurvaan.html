@@ -1,0 +1,87 @@
+<h2 align="center">t2a14-in-out-Aurvaan (WASD Move Words)</h2>
+
+<input id="myNum01" type="text" value="Aurvaan" > <br>
+<span id="mySpan01" class="movable" style="left:0px; top:0px;">Aurvaan</span><br>
+
+<input type=button value="Set word from input" onclick="document.getElementById('mySpan01').textContent = document.getElementById('myNum01').value">
+<br>
+
+<input type="button" value="Move Up" onclick="(function(){const el=document.querySelector('.movable.selected')||document.getElementById('mySpan01'); moveElementBy(el, 0, -10);})()">
+<input type="button" value="Move Left" onclick="(function(){const el=document.querySelector('.movable.selected')||document.getElementById('mySpan01'); moveElementBy(el, -10, 0);})()">
+<input type="button" value="Move Down" onclick="(function(){const el=document.querySelector('.movable.selected')||document.getElementById('mySpan01'); moveElementBy(el, 0, 10);})()">
+<input type="button" value="Move Right" onclick="(function(){const el=document.querySelector('.movable.selected')||document.getElementById('mySpan01'); moveElementBy(el, 10, 0);})()">
+
+<script>
+	(function(){
+		const STEP = 8; // pixels per key press
+		let selected = null;
+
+		function ensurePosition(elem){
+			const pos = getComputedStyle(elem).position;
+			if(pos !== 'absolute' && pos !== 'relative' && pos !== 'fixed'){
+				elem.style.position = 'absolute';
+			}
+			if(!elem.style.left) elem.style.left = '0px';
+			if(!elem.style.top) elem.style.top = '0px';
+		}
+
+		function select(elem){
+			if(selected) selected.classList.remove('selected');
+			selected = elem;
+			if(selected) selected.classList.add('selected');
+		}
+
+		function moveElementBy(elem, dx, dy){
+			if(!elem) return;
+			ensurePosition(elem);
+			const curLeft = parseInt(elem.style.left || 0, 10);
+			const curTop = parseInt(elem.style.top || 0, 10);
+			elem.style.left = (curLeft + dx) + 'px';
+			elem.style.top = (curTop + dy) + 'px';
+		}
+
+		window.moveElementBy = moveElementBy; // keep old button working
+
+		document.addEventListener('DOMContentLoaded', ()=>{
+			// make all .movable spans focusable and clickable
+			const movables = document.querySelectorAll('.movable');
+			movables.forEach(el => {
+				el.tabIndex = 0;
+				ensurePosition(el);
+				el.addEventListener('click', (e)=>{ select(el); e.stopPropagation(); });
+				el.addEventListener('focus', ()=> select(el));
+				// allow dragging with mouse as optional extra
+				let dragging = false, startX=0, startY=0, startLeft=0, startTop=0;
+				el.addEventListener('mousedown', (ev)=>{
+					dragging = true; startX = ev.clientX; startY = ev.clientY;
+					startLeft = parseInt(el.style.left || 0,10); startTop = parseInt(el.style.top || 0,10);
+					select(el);
+					ev.preventDefault();
+				});
+				window.addEventListener('mousemove', (ev)=>{
+					if(!dragging) return;
+					const dx = ev.clientX - startX; const dy = ev.clientY - startY;
+					el.style.left = (startLeft + dx) + 'px'; el.style.top = (startTop + dy) + 'px';
+				});
+				window.addEventListener('mouseup', ()=>{ dragging = false; });
+			});
+
+			// deselect when clicking outside
+			document.addEventListener('click', ()=>{ if(selected) selected.classList.remove('selected'); selected = null; });
+
+			// keyboard movement
+			document.addEventListener('keydown', (e)=>{
+				if(!selected) return;
+				const key = e.key.toLowerCase();
+				if(['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright'].includes(key)){
+					e.preventDefault();
+					if(key === 'w' || key === 'arrowup') moveElementBy(selected, 0, -STEP);
+					if(key === 's' || key === 'arrowdown') moveElementBy(selected, 0, STEP);
+					if(key === 'a' || key === 'arrowleft') moveElementBy(selected, -STEP, 0);
+					if(key === 'd' || key === 'arrowright') moveElementBy(selected, STEP, 0);
+				}
+			});
+		});
+	})();
+</script>
+<p>Click the Aurvaan word to select it, then use <strong>W A S D</strong> (or arrow keys and mouse) to move it.</p>
