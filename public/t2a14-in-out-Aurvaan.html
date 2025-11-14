@@ -10,7 +10,10 @@
 <input type="button" value="Move Left" onclick="(function(){const el=document.querySelector('.movable.selected')||document.getElementById('mySpan01'); moveElementBy(el, -10, 0);})()">
 <input type="button" value="Move Down" onclick="(function(){const el=document.querySelector('.movable.selected')||document.getElementById('mySpan01'); moveElementBy(el, 0, 10);})()">
 <input type="button" value="Move Right" onclick="(function(){const el=document.querySelector('.movable.selected')||document.getElementById('mySpan01'); moveElementBy(el, 10, 0);})()">
-
+<input type="button" value="Move Left Up" onclick="(function(){const el=document.querySelector('.movable.selected')||document.getElementById('mySpan01'); moveElementBy(el, -10, -10);})()">
+<input type="button" value="Move Right Up" onclick="(function(){const el=document.querySelector('.movable.selected')||document.getElementById('mySpan01'); moveElementBy(el, 10, -10);})()">
+<input type="button" value="Move Left Down" onclick="(function(){const el=document.querySelector('.movable.selected')||document.getElementById('mySpan01'); moveElementBy(el, -10, 10);})()">
+<input type="button" value="Move Right Down" onclick="(function(){const el=document.querySelector('.movable.selected')||document.getElementById('mySpan01'); moveElementBy(el, 10, 10);})()">
 <script>
 	(function(){
 		const STEP = 8; // pixels per key press
