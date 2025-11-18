@@ -236,6 +236,151 @@
             font-size: 0.875rem;
         }
 
+        /* --- Table Styles --- */
+        .whale-table-container {
+            margin-top: 2rem;
+            margin-bottom: 2.5rem;
+            overflow-x: auto; /* Allows horizontal scrolling on small screens */
+        }
+
+        .whale-table-container h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--ocean-dark);
+            margin-bottom: 1rem;
+            border-bottom: 2px solid var(--whale-fin);
+            padding-bottom: 0.5rem;
+        }
+
+        .whale-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px; /* Minimum width for table content */
+            font-size: 0.95rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+            border-radius: 0.5rem;
+            overflow: hidden; /* For rounded corners to work with border-collapse */
+        }
+
+        .whale-table th, .whale-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb; /* Light gray divider */
+        }
+
+        .whale-table thead {
+            background-color: var(--whale-fin);
+            color: var(--white);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .whale-table tbody tr:nth-child(odd) {
+            background-color: var(--seafoam); /* Light background for odd rows */
+        }
+
+        .whale-table tbody tr:nth-child(even) {
+            background-color: var(--white); /* White background for even rows */
+        }
+
+        .whale-table tbody tr:hover {
+            background-color: var(--ocean-light);
+            color: var(--ocean-dark);
+            cursor: pointer;
+        }
+        
+        /* --- Form Styles (New/Adapted) --- */
+        #favorite-whale-section {
+            margin-top: 5rem;
+            padding: 2rem;
+            background-color: var(--white);
+            border-radius: 0.75rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid var(--whale-fin);
+            transition: all 0.3s ease-in-out;
+            max-width: 600px; /* Limit width for a cleaner form look */
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        #favorite-whale-section:hover {
+            box-shadow: 0 25px 40px -8px rgba(0, 0, 0, 0.15), 0 10px 15px -7px rgba(0, 0, 0, 0.08);
+            border-left-color: var(--ocean-dark);
+        }
+
+        #favorite-whale-section h2 {
+            font-size: 2.25rem;
+            font-weight: 800;
+            color: var(--whale-fin);
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        
+        .form-container {
+            padding: 1rem 0;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--ocean-dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group select { /* Targeting select element */
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid #e0f2fe; /* Light blue border */
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            color: var(--text-gray-700);
+            background-color: #f8fafc; /* Very light background */
+            transition: border-color 0.3s, box-shadow 0.3s;
+            /* Custom styling for a nice dropdown arrow */
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%23277da1'%3E%3Cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.25 4.25a.75.75 0 01-1.06 0L5.21 8.27a.75.75 0 01.02-1.06z' clip-rule='evenodd' /%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 1.5em 1.5em;
+            cursor: pointer;
+        }
+        
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--whale-fin);
+            box-shadow: 0 0 0 3px rgba(39, 125, 161, 0.2);
+        }
+
+        .submit-button {
+            display: block;
+            width: 100%;
+            padding: 1rem 1.5rem;
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--white);
+            background-color: var(--ocean-dark);
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.1s;
+        }
+
+        .submit-button:hover {
+            background-color: var(--whale-fin);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .submit-button:active {
+            transform: translateY(0);
+        }
+
         /* --- Media Queries (Desktop/Tablet) --- */
         @media (min-width: 640px) { /* sm breakpoint */
             h1 {
@@ -319,13 +464,50 @@
         <!-- General Whale Information Section -->
         <section id="general-info">
             <h2>General Facts About Whales</h2>
+            
+            <!-- WHALE COMPARISON TABLE -->
+            <div class="whale-table-container">
+                <h3>Suborder Comparison: Mysticetes (Baleen) vs. Odontocetes (Toothed)</h3>
+                <table class="whale-table">
+                    <thead>
+                        <tr>
+                            <th>Feature</th>
+                            <th>Mysticetes (Baleen Whales)</th>
+                            <th>Odontocetes (Toothed Whales)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Diet & Feeding</td>
+                            <td>Filter-feeders; eat krill, small fish, and plankton using baleen plates.</td>
+                            <td>Active predators; eat fish, squid, and marine mammals (like seals or penguins) using teeth.</td>
+                        </tr>
+                        <tr>
+                            <td>Echolocation</td>
+                            <td>Do not echolocate. Rely on complex songs and low-frequency sounds for communication.</td>
+                            <td>Use sophisticated echolocation (sonar) for hunting and navigation.</td>
+                        </tr>
+                        <tr>
+                            <td>Number of Blowholes</td>
+                            <td>Two (paired) blowholes.</td>
+                            <td>One (single) blowhole.</td>
+                        </tr>
+                        <tr>
+                            <td>Examples</td>
+                            <td>Blue, Humpback, Fin, Gray.</td>
+                            <td>Sperm, Killer Whale (Orca), Dolphins, Porpoises.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
             <div class="general-info-grid">
                 
                 <!-- Fact Column 1 -->
                 <div>
                     <h3>Classification</h3>
                     <p>
-                        All whales belong to the order <strong class="text-ocean-dark">Cetacea</strong> and are divided into two suborders: <strong>Mysticetes</strong> (baleen whales, which filter feed) and <strong>Odontocetes</strong> (toothed whales, which are active predators and use echolocation).
+                        All whales belong to the order cetacea and are divided into two suborders: Mysticetes (baleen whales, which filter feed) and odontocetes (toothed whales, which are active predators and use echolocation).
                     </p>
                 </div>
                 
@@ -345,11 +527,28 @@
                     </p>
                 </div>
             </div>
-
+            
+          
+        </section>
+        
+        <!-- Favorite Whale Selector Section (New) -->
+        <section id="favorite-whale-section">
+            <h2>Pick Your Favorite Whale</h2>
+            <form id="favorite-whale-form" class="form-container">
+                <div class="form-group">
+                    <label for="favorite-whale">Select a Whale Species:</label>
+                    <select id="favorite-whale" name="favorite-whale" required>
+                        <option value="" disabled selected>-- Select a Whale --</option>
+                        <!-- Options will be populated by JavaScript -->
+                    </select>
+                </div>
+                <button type="submit" class="submit-button">Confirm Selection</button>
+            </form>
         </section>
 
     </main>
     
+
 
     <script>
         // Array containing data for the five featured whales
@@ -420,7 +619,7 @@
             const container = document.getElementById('whale-cards');
             const templateEl = document.getElementById('whale-template');
             if (!container || !templateEl) {
-                console.error("Required DOM elements not found.");
+                console.error("Required DOM elements for cards not found.");
                 return;
             }
             
@@ -447,6 +646,37 @@
                     }
                 }, index * 250); // 250ms delay per card
             });
+            
+            // --- Favorite Whale Form Logic (New) ---
+            const selectEl = document.getElementById('favorite-whale');
+            const form = document.getElementById('favorite-whale-form');
+
+            if (selectEl) {
+                // Populate the dropdown with whale names
+                whalesData.forEach(whale => {
+                    const option = document.createElement('option');
+                    option.value = whale.name;
+                    option.textContent = whale.name;
+                    selectEl.appendChild(option);
+                });
+            }
+
+            if (form) {
+                form.addEventListener('submit', (event) => {
+                    event.preventDefault(); // Stop the default form submission
+                    
+                    const selectedWhale = form.elements['favorite-whale'].value;
+                    
+                    let message = `You have selected the **${selectedWhale} Whale** as your favorite! Great choice!`;
+                    
+                    // Log confirmation to the console
+                    console.log(`\n\n================================`);
+                    console.log(`WHALE SELECTION CONFIRMED:`);
+                    console.log(message);
+                    console.log(`================================\n`);
+                });
+            }
+            // The form submission handler has been removed as requested.
         });
     </script>
 </body>
