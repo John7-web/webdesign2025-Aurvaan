@@ -1,121 +1,254 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Load Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        /* Custom font import and basic styling */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-        /* Custom class for the button effect */
-        .btn-shadow {
-            box-shadow: 0 6px 0 0 #581c87; /* Purple shadow */
-            transition: transform 0.1s, box-shadow 0.1s;
-        }
-        .btn-shadow:active {
-            transform: translateY(2px);
-            box-shadow: 0 4px 0 0 #581c87;
-        }
-    </style>
+<meta charset="UTF-8" />
+<title>3D Horse Racing Game</title>
+<style>
+    body { margin: 0; overflow: hidden; background: #87ceeb; }
+    #hud {
+        position: absolute; top: 20px; left: 20px; 
+        font-size: 24px; font-family: sans-serif; color: white;
+        text-shadow: 2px 2px 4px #000;
+    }
+    #countdown {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 100px;
+        color: white;
+        font-family: sans-serif;
+        text-shadow: 4px 4px 10px black;
+        display: none;
+    }
+</style>
 </head>
-<body class="bg-gray-900 min-h-screen flex items-center justify-center p-4">
+<body>
 
-    <div class="max-w-md w-full bg-gray-800 p-8 rounded-xl shadow-2xl border border-purple-700/50">
-        <!-- Header -->
-        <h1 class="text-3xl font-extrabold text-white mb-4 text-center">The Horse Legion Awaits</h1>
-      
+<div id="hud">Speed: 0</div>
+<div id="countdown">3</div>
 
-        <!-- Dynamic Message Box -->
-        <div id="message" class="hidden p-3 bg-red-900/40 text-sm font-medium text-red-400 rounded-lg mb-6 border border-red-700/50">
-            <!-- Message content will be added by JS -->
-        </div>
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 
-        <!-- Button -->
-        <button
-            id="openTabsButton"
-            onclick="open121Tabs()"
-            class="w-full text-white font-bold py-3 px-4 rounded-xl text-lg bg-purple-600 hover:bg-purple-700 transition duration-150 ease-in-out btn-shadow focus:outline-none focus:ring-4 focus:ring-purple-500 focus:ring-opacity-50"
-        >
-            Horse
-        </button>
+<script>
+/* ---------------------------------------------------
+   SETUP
+--------------------------------------------------- */
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 5000);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
 
-        <!-- Image Preview (Optional, for context) -->
-        <div class="mt-8">
-            <p class="text-gray-500 text-sm mb-3 text-center"></p>
-            <img 
-                src="https://thumbs.dreamstime.com/b/brown-icelandic-horse-facing-camera-semiwild-flowing-full-mane-frontal-view-portrait-perfect-symmetry-73667093.jpg" 
-                alt="A beautiful brown Icelandic horse" 
-                class="w-full h-auto rounded-lg shadow-lg object-cover border border-gray-700/50"
-                onerror="this.onerror=null;this.src='https://placehold.co/400x300/374151/D1D5DB?text=Image+Unavailable';"
-            >
-        </div>
-    </div>
+/* ---------------------------------------------------
+   LIGHTING
+--------------------------------------------------- */
+scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+const sun = new THREE.DirectionalLight(0xffffff, 1);
+sun.position.set(50, 100, 50);
+scene.add(sun);
 
-    <script>
-        // Helper function to update the message box and button state
-        function updateMessage(tabsOpened, numTabs) {
-            const messageElement = document.getElementById('message');
-            const button = document.getElementById('openTabsButton');
+/* ---------------------------------------------------
+   TRACK
+--------------------------------------------------- */
+const track = new THREE.Mesh(
+    new THREE.PlaneGeometry(2000, 50),
+    new THREE.MeshLambertMaterial({ color: 0x228B22 })
+);
+track.rotation.x = -Math.PI / 2;
+scene.add(track);
 
-            messageElement.classList.remove('hidden');
-            button.disabled = false;
-            button.textContent = 'Open 121 Horse Tabs (Slowed)!'; // Reset button text
+/* ---------------------------------------------------
+   HORSE MODEL
+--------------------------------------------------- */
+function createHorse(color) {
+    const mat = new THREE.MeshLambertMaterial({ color });
 
-            if (tabsOpened < numTabs) {
-                // Warning/Error case
-                messageElement.classList.remove('bg-green-900/40', 'text-green-400', 'border-green-700/50');
-                messageElement.classList.add('bg-red-900/40', 'text-red-400', 'border-red-700/50');
-                messageElement.textContent = `Attempted to open ${numTabs} tabs with a 500ms delay between each. Your browser's popup blocker likely stopped the rest after opening ${tabsOpened}. You may need to disable the blocker for this site.`;
-            } else {
-                // Success case
-                messageElement.classList.remove('bg-red-900/40', 'text-red-400', 'border-red-700/50');
-                messageElement.classList.add('bg-green-900/40', 'text-green-400', 'border-green-700/50');
-                messageElement.textContent = `${tabsOpened} tabs successfully opened! Enjoy the symmetry.`;
-            }
+    // Body
+    const body = new THREE.Mesh(new THREE.BoxGeometry(5, 2, 2), mat);
+
+    // Head
+    const head = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.2, 1.2), mat);
+    head.position.set(3, 0.5, 0);
+    body.add(head);
+
+    // Legs
+    const legGeo = new THREE.BoxGeometry(0.6, 1.6, 0.6);
+
+    const legFL = new THREE.Mesh(legGeo, mat);
+    const legFR = new THREE.Mesh(legGeo, mat);
+    const legBL = new THREE.Mesh(legGeo, mat);
+    const legBR = new THREE.Mesh(legGeo, mat);
+
+    legFL.position.set(1.5, -1.8, 0.9);
+    legFR.position.set(1.5, -1.8, -0.9);
+    legBL.position.set(-1.5, -1.8, 0.9);
+    legBR.position.set(-1.5, -1.8, -0.9);
+
+    body.add(legFL, legFR, legBL, legBR);
+
+    // Store legs for galloping animation
+    body.legs = { legFL, legFR, legBL, legBR };
+
+    return body;
+}
+
+/* ---------------------------------------------------
+   PLAYER + AI HORSES
+--------------------------------------------------- */
+const player = createHorse(0xffcc55);
+player.position.set(-900, 1, 0);
+scene.add(player);
+
+const aiHorses = [];
+for (let i = 0; i < 3; i++) {
+    let ai = createHorse(0x5555ff + i * 5000);
+    ai.position.set(-900, 1, (i - 1) * 6);
+    aiHorses.push({
+        mesh: ai,
+        speed: 14 + Math.random() * 4
+    });
+    scene.add(ai);
+}
+
+/* ---------------------------------------------------
+   INPUT
+--------------------------------------------------- */
+let keys = {};
+document.addEventListener("keydown", e => (keys[e.key] = true));
+document.addEventListener("keyup", e => (keys[e.key] = false));
+
+/* Movement values */
+let speed = 0;
+let maxSpeed = 22;
+
+/* ---------------------------------------------------
+   GALLOPING ANIMATION
+--------------------------------------------------- */
+let gallopTime = 0;
+
+function gallopAnimation(horse, animSpeed) {
+    gallopTime += animSpeed * 0.3;
+
+    const swing = Math.sin(gallopTime) * 0.8;
+    const swingOpp = Math.sin(gallopTime + Math.PI) * 0.8;
+
+    horse.legs.legFL.rotation.x = swing;
+    horse.legs.legBR.rotation.x = swing;
+    horse.legs.legFR.rotation.x = swingOpp;
+    horse.legs.legBL.rotation.x = swingOpp;
+}
+
+/* ---------------------------------------------------
+   COUNTDOWN
+--------------------------------------------------- */
+let raceStarted = false;
+
+function startCountdown() {
+    const cd = document.getElementById("countdown");
+    cd.style.display = "block";
+    let count = 3;
+
+    cd.innerText = count;
+
+    const timer = setInterval(() => {
+        count--;
+
+        if (count === 0) cd.innerText = "GO!";
+        else if (count < 0) {
+            cd.style.display = "none";
+            raceStarted = true;
+            clearInterval(timer);
+        } else cd.innerText = count;
+    }, 1000);
+}
+startCountdown();
+
+/* ---------------------------------------------------
+   FIXED CAMERA
+--------------------------------------------------- */
+const desiredOffset = new THREE.Vector3(0, 8, 18);
+const lookOffset = new THREE.Vector3(0, 3, 0);
+
+function updateCamera() {
+    const rotOffset = desiredOffset.clone().applyAxisAngle(
+        new THREE.Vector3(0, 1, 0),
+        player.rotation.y
+    );
+
+    const targetPos = player.position.clone().add(rotOffset);
+    camera.position.lerp(targetPos, 0.08);
+
+    const lookAt = player.position.clone().add(lookOffset);
+    camera.lookAt(lookAt);
+}
+
+/* ---------------------------------------------------
+   MAIN LOOP
+--------------------------------------------------- */
+const fwd = new THREE.Vector3();
+const finishX = 900;
+
+function animate() {
+    requestAnimationFrame(animate);
+
+    if (raceStarted) {
+        // Acceleration
+        if (keys["w"]) speed = Math.min(speed + 0.4, maxSpeed);
+        else speed = Math.max(speed - 0.3, 0);
+
+        // Turning
+        if (keys["a"]) player.rotation.y += 0.04;
+        if (keys["d"]) player.rotation.y -= 0.04;
+
+        // Fixed forward movement
+        player.getWorldDirection(fwd);
+        fwd.y = 0;
+        fwd.normalize();
+        player.position.addScaledVector(fwd, speed * 0.3);
+
+        // Speed HUD
+        document.getElementById("hud").textContent = "Speed: " + Math.floor(speed);
+
+        // Galloping
+        gallopAnimation(player, speed / maxSpeed);
+
+        // AI horses
+        aiHorses.forEach(ai => {
+            ai.mesh.position.x += ai.speed * 0.3;
+            gallopAnimation(ai.mesh, ai.speed / 22);
+        });
+    }
+
+    updateCamera();
+
+    // Finish line
+    if (raceStarted && player.position.x >= finishX) {
+        alert("🏆 YOU WIN!");
+        raceStarted = false;
+    }
+
+    aiHorses.forEach(ai => {
+        if (raceStarted && ai.mesh.position.x >= finishX) {
+            alert("❗ AI Horse Wins!");
+            raceStarted = false;
         }
+    });
 
-        /**
-         * The core function to open multiple tabs with a delay.
-         * Note: The browser's popup blocker will likely intervene after the first few tabs, 
-         * regardless of the delay.
-         */
-        function open121Tabs() {
-            const url = "https://thumbs.dreamstime.com/b/brown-icelandic-horse-facing-camera-semiwild-flowing-full-mane-frontal-view-portrait-perfect-symmetry-73667093.jpg";
-            const numTabs = 121; // Now 121 tabs
-            const delayMs = 500; // 500 milliseconds delay between each tab
-            let tabsOpened = 0;
-            const button = document.getElementById('openTabsButton');
+    renderer.render(scene, camera);
+}
 
-            // Prepare UI for execution
-            document.getElementById('message').classList.add('hidden');
-            button.disabled = true;
-            button.textContent = `Opening tabs... (0/${numTabs})`;
-            
-            // Loop to schedule tab opening with increasing delays
-            for (let i = 0; i < numTabs; i++) {
-                setTimeout(() => {
-                    // Try to open a new tab
-                    const newWindow = window.open(url, '_blank');
-                    
-                    if (newWindow) {
-                        tabsOpened++;
-                    } 
+animate();
 
-                    // Update button progress text
-                    button.textContent = `Opening tabs... (${i + 1}/${numTabs})`;
+/* ---------------------------------------------------
+   RESIZE HANDLER
+--------------------------------------------------- */
+window.addEventListener("resize", () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
 
-                    // After the last iteration, update the final message.
-                    if (i === numTabs - 1) {
-                        // Wait a moment for the last tab to try and open
-                        setTimeout(() => updateMessage(tabsOpened, numTabs), 500); 
-                    }
-                }, i * delayMs); // Delay is 0ms, 500ms, 1000ms, 1500ms, etc.
-            }
-        }
-    </script>
 </body>
 </html>

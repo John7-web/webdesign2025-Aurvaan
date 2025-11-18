@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    
+    <style>
+        /* --- CSS Variables for Ocean Theme --- */
+        :root {
+            --ocean-dark: #0a3642;
+            --ocean-light: #80b8e0;
+            --seafoam: #d9f1f6;
+            --whale-fin: #277da1;
+            --text-gray-700: #4b5563;
+            --text-gray-500: #6b7280;
+            --white: #ffffff;
+        }
+
+        /* --- Keyframe Animations --- */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* The @keyframes seaGlow has been removed as requested. */
+
+        /* --- Base Styles --- */
+        body {
+            background-color: var(--seafoam);
+            color: var(--ocean-dark);
+            /* Font set to basic system-wide sans-serif stack */
+            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Custom styles for aesthetic scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #e0f2fe; }
+        ::-webkit-scrollbar-thumb { background: var(--ocean-dark); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #1a4d5a; }
+        
+        /* --- Layout Containers --- */
+        main {
+            max-width: 1280px;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 4rem 1rem; /* py-16 px-4 */
+            /* Animation applied here */
+            animation: fadeInUp 1s ease-out forwards;
+        }
+        
+        /* --- Hero Section --- */
+        header {
+            background-color: var(--ocean-dark);
+            height: 18rem; /* h-72 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem; /* p-6 */
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); /* shadow-2xl */
+        }
+
+        h1 {
+            font-size: 3rem; 
+            font-weight: 800;
+            color: var(--white);
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.025em; /* tracking-tight */
+            /* Removed seaGlow animation from h1 */
+        }
+
+        header p {
+            font-size: 1.25rem;
+            color: var(--ocean-light);
+            font-weight: 500;
+        }
+
+        /* --- Whale Cards Section (Staggered Animation Setup) --- */
+        #featured-whales {
+            margin-bottom: 3rem;
+        }
+
+        .whale-card-container {
+            background-color: var(--white);
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            border-bottom: 4px solid var(--whale-fin);
+            margin-bottom: 3rem;
+            display: flex;
+            flex-direction: column; /* default mobile stack */
+            align-items: center;
+
+            /* Smooth transition setup for all properties, ready for hover and load-in */
+            transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94); 
+            
+            /* Initial state for staggered JS load-in */
+            opacity: 0; 
+            transform: translateY(15px);
+        }
+
+        /* Activated class for JS staggered load-in */
+        .whale-card-container.animate-in {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .whale-card-container:hover {
+            box-shadow: 0 15px 25px rgba(10, 54, 66, 0.25); /* Enhanced shadow on hover */
+            transform: translateY(-8px); /* Deeper lift on hover */
+        }
+
+        .whale-image-area {
+            flex-shrink: 0;
+            width: 100%; /* w-full */
+        }
+
+        .whale-image {
+            width: 100%;
+            height: 12rem; /* h-48 */
+            object-fit: cover;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .whale-card-container:hover .whale-image {
+            transform: scale(1.02); /* Slight zoom on image hover */
+        }
+
+        .whale-content-area {
+            width: 100%;
+            padding: 1.5rem; /* p-6 */
+        }
+
+        .whale-content-area h2 {
+            font-size: 1.875rem; /* text-3xl */
+            font-weight: 700;
+            color: var(--whale-fin);
+            margin-bottom: 0.75rem;
+        }
+
+        .whale-content-area p {
+            color: var(--text-gray-700);
+            line-height: 1.625; /* leading-relaxed */
+        }
+
+        .whale-facts-list {
+            margin-top: 1rem;
+            padding: 0;
+            list-style: none;
+            display: block;
+        }
+
+        .whale-facts-list li {
+            font-size: 0.875rem; /* text-sm */
+            color: var(--ocean-dark);
+            font-weight: 600;
+            margin-bottom: 0.25rem; /* space-y-1 equivalent */
+            display: flex;
+        }
+        
+        .whale-facts-list li span {
+            color: var(--whale-fin);
+            margin-right: 0.25rem; /* mr-1 */
+        }
+
+
+        /* --- General Info Section --- */
+        #general-info {
+            margin-top: 5rem; /* mt-20 */
+            padding: 2rem; /* p-8 */
+            background-color: var(--white);
+            border-radius: 0.75rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            border-top: 4px solid var(--ocean-dark);
+            /* Smooth transition on hover */
+            transition: all 0.3s ease-in-out;
+        }
+        
+        #general-info:hover {
+            box-shadow: 0 25px 40px -8px rgba(0, 0, 0, 0.15), 0 10px 15px -7px rgba(0, 0, 0, 0.08);
+            border-top-color: var(--whale-fin);
+        }
+
+        #general-info h2 {
+            font-size: 2.25rem; /* text-4xl */
+            font-weight: 800;
+            color: var(--ocean-dark);
+            margin-bottom: 1.5rem;
+        }
+
+        .general-info-grid {
+            display: grid;
+            grid-template-columns: 1fr; /* default mobile stack */
+            gap: 2rem; /* gap-8 */
+            color: var(--text-gray-700);
+        }
+
+        .general-info-grid h3 {
+            font-size: 1.25rem; /* text-xl */
+            font-weight: 700;
+            color: var(--whale-fin);
+            margin-bottom: 0.5rem;
+        }
+
+        .general-info-grid strong {
+            color: var(--ocean-dark);
+        }
+        
+        #general-info > p {
+            margin-top: 1.5rem;
+            text-align: center;
+            font-size: 0.875rem;
+            color: var(--text-gray-500);
+        }
+
+        /* --- Footer --- */
+        footer {
+            background-color: var(--ocean-dark);
+            color: var(--ocean-light);
+            text-align: center;
+            padding: 1.5rem; /* p-6 */
+            margin-top: 3rem; /* mt-12 */
+        }
+
+        footer p {
+            font-size: 0.875rem;
+        }
+
+        /* --- Media Queries (Desktop/Tablet) --- */
+        @media (min-width: 640px) { /* sm breakpoint */
+            h1 {
+                font-size: 4.5rem; /* sm:text-7xl */
+            }
+            header p {
+                font-size: 1.5rem; /* sm:text-2xl */
+            }
+        }
+
+        @media (min-width: 768px) { /* md breakpoint */
+            /* Whale Card: Switch to horizontal layout */
+            .whale-card-container {
+                flex-direction: row; 
+            }
+
+            .whale-image-area {
+                width: 33.333333%; /* md:w-1/3 */
+            }
+
+            .whale-image {
+                height: 100%; /* md:h-full */
+            }
+            
+            .whale-content-area {
+                width: 66.666667%; /* md:w-2/3 */
+            }
+
+            /* General Info Grid: Switch to 3 columns */
+            .general-info-grid {
+                grid-template-columns: repeat(3, 1fr); 
+            }
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Hero Section -->
+    <header>
+        <div class="text-center">
+            <h1>
+                t2a15-whales-Aurvaan
+            </h1>
+        </div>
+    </header>
+
+    <main>
+
+        <!-- Featured Whales Grid -->
+        <section id="featured-whales">
+
+            <!-- Whale Card Component Template -->
+            <script type="text/template" id="whale-template">
+                <div class="whale-card-container">
+                    <!-- Image Area -->
+                    <div class="whale-image-area">
+                        <img class="whale-image" 
+                            src="__IMAGE_URL__" 
+                            alt="__WHALE_NAME__ Whale"
+                            onerror="this.style.backgroundColor='__COLOR_CODE__'; this.alt='Placeholder Image'; this.src='https://placehold.co/600x400/__COLOR_CODE__/FFFFFF?text=Image+Not+Found'">
+                    </div>
+                    <!-- Content Area -->
+                    <div class="whale-content-area">
+                        <h2>__WHALE_NAME__ Whale</h2>
+                        <p>
+                            __DESCRIPTION__
+                        </p>
+                        <ul class="whale-facts-list">
+                            __FACTS_LIST__
+                        </ul>
+                    </div>
+                </div>
+            </script>
+            
+            <div id="whale-cards">
+                <!-- Cards will be dynamically inserted here -->
+            </div>
+
+        </section>
+
+        <!-- General Whale Information Section -->
+        <section id="general-info">
+            <h2>General Facts About Whales</h2>
+            <div class="general-info-grid">
+                
+                <!-- Fact Column 1 -->
+                <div>
+                    <h3>Classification</h3>
+                    <p>
+                        All whales belong to the order <strong class="text-ocean-dark">Cetacea</strong> and are divided into two suborders: <strong>Mysticetes</strong> (baleen whales, which filter feed) and <strong>Odontocetes</strong> (toothed whales, which are active predators and use echolocation).
+                    </p>
+                </div>
+                
+                <!-- Fact Column 2 -->
+                <div>
+                    <h3>The Largest Mammal</h3>
+                    <p>
+                        The Blue Whale is the largest animal ever known to have lived on Earth, exceeding even the largest dinosaurs. Due to their size, their bodies are perfectly supported by the buoyancy of seawater.
+                    </p>
+                </div>
+
+                <!-- Fact Column 3 -->
+                <div>
+                    <h3>Ecosystem Role</h3>
+                    <p>
+                        Whales are vital for ocean health. Their vertical migration and nutrient-rich feces (known as the "whale pump") help circulate nutrients from the deep sea to the surface, feeding phytoplankton, which in turn produce oxygen.
+                    </p>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+    
+
+    <script>
+        // Array containing data for the five featured whales
+        const whalesData = [
+            {
+                name: "Blue",
+                image: "https://a-z-animals.com/media/2021/04/Blue-Whale-in-ocean.jpg",
+                color: "#226d9c",
+                description: "The Blue Whale is the largest animal on Earth. A baleen whale, it feeds almost exclusively on tiny krill, consuming up to 4 tons per day during feeding season. They produce extremely loud, low-frequency sounds to communicate across vast ocean distances.",
+                facts: [
+                    "Classification: Baleen Whale (Mysticete)",
+                    "Size: Up to 100 ft (30.5m) long",
+                    "Weight: Up to 200 tons",
+                    "Fact: Its heart is the size of a small car."
+                ]
+            },
+            {
+                name: "Sperm",
+                image: "https://www.thoughtco.com/thmb/64EqdmbStdnjyWTR5RZqTGnjLho%3d/2121x1414/filters:fill(auto%2c1)/GettyImages-114809316-2189a0ec59b94bdea682646e19613174.jpg",
+                color: "#8d8d8d",
+                description: "The Sperm Whale is the largest toothed whale and the largest toothed predator on the planet. Recognizable by its enormous, block-shaped head, which contains the spermaceti organ, it is famous for its deep dives to hunt giant squid.",
+                facts: [
+                    "Classification: Toothed Whale (Odontocete)",
+                    "Size: Up to 67 ft (20.5m) long",
+                    "Brain: Has the largest brain of any animal",
+                    "Fact: Can dive over 3,000 feet in search of prey."
+                ]
+            },
+            {
+                name: "Humpback",
+                image: "https://files-preprod-d9.northernbeaches.nsw.gov.au/nbc-prod-files/images/species/humpback-whales.jpg",
+                color: "#5a9e88",
+                description: "Known for their spectacular breaching and complex 'singing,' Humpbacks are the acrobats of the sea. They possess the longest pectoral fins of any whale species and use an ingenious technique called 'bubble-net feeding' to trap their prey.",
+                facts: [
+                    "Classification: Baleen Whale (Mysticete)",
+                    "Size: Up to 52 ft (16m) long",
+                    "Behavior: Highly migratory; known for singing",
+                    "Fact: Its tail (fluke) markings are unique, like a human fingerprint."
+                ]
+            },
+            {
+                name: "Fin",
+                image: "https://www.sciencenews.org/wp-content/uploads/2021/02/021021_cg_whalesong_feat.jpg",
+                color: "#4a7c8c",
+                description: "The Fin Whale is the second-largest animal on Earth, surpassed only by the Blue Whale. It is long, sleek, and often called the 'Greyhound of the Sea' due to its impressive speed. It can be identified by its distinctive off-center fin on its back.",
+                facts: [
+                    "Classification: Baleen Whale (Mysticete)",
+                    "Size: Up to 90 ft (27.5m) long",
+                    "Speed: Known for fast, powerful swimming",
+                    "Fact: Often has asymmetric coloring on its lower jaw."
+                ]
+            },
+            {
+                name: "Killer",
+                image: "https://a-z-animals.com/media/animals/images/original/killer_whale_3.jpg",
+                color: "#000000",
+                description: "The Killer Whale, or Orca, is the largest species of dolphin and an apex predator. Highly intelligent and social, they live in family groups called 'pods' and use sophisticated hunting techniques, often targeting marine mammals and large fish.",
+                facts: [
+                    "Classification: Toothed Whale (Dolphin Family)",
+                    "Size: Up to 31 ft (9.4m) long",
+                    "Social Structure: Live in complex family pods",
+                    "Fact: Different pods have distinct diets and dialects (cultures)."
+                ]
+            }
+        ];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const container = document.getElementById('whale-cards');
+            const templateEl = document.getElementById('whale-template');
+            if (!container || !templateEl) {
+                console.error("Required DOM elements not found.");
+                return;
+            }
+            
+            const template = templateEl.innerHTML;
+
+            whalesData.forEach((whale, index) => {
+                const factsList = whale.facts.map(fact => `<li><span>•</span> ${fact}</li>`).join('');
+                
+                let html = template
+                    .replace(/__WHALE_NAME__/g, whale.name)
+                    .replace(/__IMAGE_URL__/g, whale.image)
+                    .replace(/__COLOR_CODE__/g, whale.color.substring(1))
+                    .replace(/__DESCRIPTION__/g, whale.description)
+                    .replace(/__FACTS_LIST__/g, factsList);
+
+                container.insertAdjacentHTML('beforeend', html);
+
+                // --- Staggered Animation Logic ---
+                const insertedElement = container.lastElementChild;
+                
+                setTimeout(() => {
+                    if (insertedElement) {
+                        insertedElement.classList.add('animate-in');
+                    }
+                }, index * 250); // 250ms delay per card
+            });
+        });
+    </script>
+</body>
+</html>
