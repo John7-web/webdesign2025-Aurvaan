@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProRoof - Professional Roofing Services</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        /* Header & Navigation */
+        header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.3s ease;
+            font-weight: 500;
+        }
+
+        nav a:hover {
+            color: #f39c12;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(rgba(44, 62, 80, 0.8), rgba(52, 152, 219, 0.8)),
+                        url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600"><rect fill="%23f5f5f5" width="1200" height="600"/><path fill="%23ddd" d="M0,300 L300,100 L600,250 L900,80 L1200,300 L1200,600 L0,600 Z"/></svg>');
+            background-size: cover;
+            background-position: center;
+            color: white;
+            padding: 8rem 2rem;
+            text-align: center;
+            min-height: 500px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            animation: slideDown 0.8s ease-out;
+        }
+
+        .hero p {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            max-width: 600px;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+        }
+
+        .cta-button {
+            background: #f39c12;
+            color: white;
+            padding: 1rem 2.5rem;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(243, 156, 18, 0.4);
+            text-decoration: none;
+            display: inline-block;
+            font-weight: bold;
+        }
+
+        .cta-button:hover {
+            background: #e67e22;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(243, 156, 18, 0.6);
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Services Section (Lists) */
+        .services {
+            max-width: 1200px;
+            margin: 4rem auto;
+            padding: 0 2rem;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            color: #2c3e50;
+            position: relative;
+            padding-bottom: 1rem;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(90deg, #3498db, #f39c12);
+            border-radius: 2px;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .service-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            border-left: 4px solid #3498db;
+        }
+
+        .service-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+            border-left-color: #f39c12;
+        }
+
+        .service-card h3 {
+            color: #3498db;
+            margin-bottom: 1rem;
+            font-size: 1.4rem;
+        }
+
+        .service-card ul {
+            margin-left: 1.5rem;
+        }
+
+        .service-card li {
+            margin-bottom: 0.8rem;
+            color: #555;
+            padding-left: 0.5rem;
+        }
+
+        .service-card li::before {
+            content: '✓';
+            color: #f39c12;
+            margin-right: 0.8rem;
+            font-weight: bold;
+        }
+
+        /* Roofing Types Section */
+        .roofing-types {
+            background: #f8f9fa;
+            padding: 4rem 2rem;
+            margin: 2rem 0;
+        }
+
+        .roofing-types-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .types-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .type-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+        }
+
+        .type-card:hover {
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+            transform: scale(1.05);
+        }
+
+        .type-card h4 {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .type-card p {
+            color: #777;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        /* Gallery/Images Section */
+        .gallery {
+            max-width: 1200px;
+            margin: 4rem auto;
+            padding: 0 2rem;
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .gallery-item {
+            position: relative;
+            overflow: hidden;
+            border-radius: 10px;
+            aspect-ratio: 4 / 3;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .gallery-item:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+
+        .gallery-placeholder {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.1rem;
+            position: relative;
+        }
+
+        .gallery-placeholder::before {
+            content: '';
+            position: absolute;
+            font-size: 3rem;
+            opacity: 0.3;
+        }
+
+        .gallery-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .gallery-item:hover .gallery-overlay {
+            opacity: 1;
+        }
+
+        .gallery-overlay-text {
+            color: white;
+            font-size: 1.3rem;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        /* Testimonials Section */
+        .testimonials {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            padding: 4rem 2rem;
+            color: white;
+        }
+
+        .testimonials-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .testimonials .section-title {
+            color: white;
+        }
+
+        .testimonials .section-title::after {
+            background: linear-gradient(90deg, #f39c12, #fff);
+        }
+
+        .testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .testimonial-card {
+            background: rgba(255,255,255,0.1);
+            padding: 2rem;
+            border-radius: 10px;
+            border-left: 4px solid #f39c12;
+            backdrop-filter: blur(10px);
+        }
+
+        .testimonial-card p {
+            margin-bottom: 1.5rem;
+            font-style: italic;
+            line-height: 1.8;
+        }
+
+        .testimonial-author {
+            font-weight: bold;
+            color: #f39c12;
+        }
+
+        /* Feedback Section */
+        .feedback-section {
+            max-width: 1200px;
+            margin: 4rem auto;
+            padding: 0 2rem;
+        }
+
+        .feedback-container {
+            background: #f8f9fa;
+            padding: 3rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .feedback-form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .feedback-form .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .feedback-form label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .feedback-form input,
+        .feedback-form textarea,
+        .feedback-form select {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .feedback-form input:focus,
+        .feedback-form textarea:focus,
+        .feedback-form select:focus {
+            border-color: #3498db;
+            outline: none;
+            box-shadow: 0 0 8px rgba(52, 152, 219, 0.3);
+        }
+
+        .feedback-form textarea {
+            resize: vertical;
+            min-height: 150px;
+        }
+
+        .rating-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        .star-rating {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .star-rating input {
+            display: none;
+        }
+
+        .star-rating label {
+            font-size: 2rem;
+            color: #ddd;
+            cursor: pointer;
+            transition: color 0.2s ease;
+            margin: 0;
+            padding: 0;
+        }
+
+        .star-rating label:hover,
+        .star-rating label:hover ~ label,
+        .star-rating input:checked ~ label {
+            color: #f39c12;
+        }
+
+        .star-rating {
+            display: flex;
+            flex-direction: row-reverse;
+            width: fit-content;
+        }
+
+        .feedback-submit {
+            background: linear-gradient(135deg, #3498db 0%, #2c3e50 100%);
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .feedback-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+        }
+
+        /* Appointment Form Section */
+        .appointment-section {
+            max-width: 1200px;
+            margin: 4rem auto;
+            padding: 0 2rem;
+        }
+
+        .form-container {
+            background: #f8f9fa;
+            padding: 3rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="phone"],
+        input[type="date"],
+        input[type="time"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        input[type="phone"]:focus,
+        input[type="date"]:focus,
+        input[type="time"]:focus,
+        select:focus,
+        textarea:focus {
+            border-color: #3498db;
+            outline: none;
+            box-shadow: 0 0 8px rgba(52, 152, 219, 0.3);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #3498db 0%, #2c3e50 100%);
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Footer */
+        footer {
+            background: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            margin-top: 4rem;
+        }
+
+        footer p {
+            margin-bottom: 0.5rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .hero p {
+                font-size: 1.1rem;
+            }
+
+            nav ul {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .gallery-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Header -->
+    <header>
+        <nav>
+            <div class="logo">ProRoof t2a18-business-Aurvaan</div>
+            <ul>
+                <li><a href="#services">Services</a></li>
+                <li><a href="#types">Roof Types</a></li>
+                <li><a href="#gallery">Gallery</a></li>
+                <li><a href="#testimonials">Reviews</a></li>
+                <li><a href="#feedback">Feedback</a></li>
+                <li><a href="#appointment">Book Now</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <h1>Professional Roofing Services</h1>
+        <p>Quality workmanship for your peace of mind. Expert roofing solutions for residential and commercial properties.</p>
+        <a href="#appointment" class="cta-button">Schedule Your Free Inspection</a>
+    </section>
+
+    <!-- Services Section -->
+    <section class="services" id="services">
+        <h2 class="section-title">Our Services</h2>
+        <div class="services-grid">
+            <div class="service-card">
+                <h3>Installation</h3>
+                <ul>
+                    <li>New roof installation</li>
+                    <li>Professional team</li>
+                    <li>Quality materials</li>
+                    <li>Licensed & insured</li>
+                    <li>Quick turnaround</li>
+                </ul>
+            </div>
+            <div class="service-card">
+                <h3>Repair & Maintenance</h3>
+                <ul>
+                    <li>Leak detection</li>
+                    <li>Emergency repairs</li>
+                    <li>Shingle replacement</li>
+                    <li>Gutter services</li>
+                    <li>24/7 availability</li>
+                </ul>
+            </div>
+            <div class="service-card">
+                <h3>Inspection</h3>
+                <ul>
+                    <li>Comprehensive inspections</li>
+                    <li>Damage assessment</li>
+                    <li>Insurance reports</li>
+                    <li>Free estimates</li>
+                    <li>Detailed documentation</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Roofing Types Section -->
+    <section class="roofing-types" id="types">
+        <div class="roofing-types-container">
+            <h2 class="section-title">Roofing Types We Specialize In</h2>
+            <div class="types-grid">
+                <div class="type-card">
+                    <h4>Asphalt Shingles</h4>
+                    <p>Affordable, durable, and comes in various colors. Perfect for most residential homes.</p>
+                </div>
+                <div class="type-card">
+                    <h4>Metal Roofing</h4>
+                    <p>Long-lasting, energy-efficient, and eco-friendly. Ideal for modern properties.</p>
+                </div>
+                <div class="type-card">
+                    <h4>Wood Shingles</h4>
+                    <p>Classic beauty and natural insulation. Premium option for traditional homes.</p>
+                </div>
+                <div class="type-card">
+                    <h4>Slate Tiles</h4>
+                    <p>Elegant, premium, and extremely durable. Lasts over 100 years.</p>
+                </div>
+                <div class="type-card">
+                    <h4>Membrane Roofing</h4>
+                    <p>Modern flat roof solution. Great for commercial and industrial buildings.</p>
+                </div>
+                <div class="type-card">
+                    <h4>Green Roofing</h4>
+                    <p>Eco-friendly with vegetation. Improves insulation and reduces energy costs.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Gallery Section -->
+    <section class="gallery" id="gallery">
+        <h2 class="section-title">Our Recent Projects</h2>
+        <div class="gallery-grid">
+            <div class="gallery-item">
+                <img src="roofing 1.jpg" alt="Professional Roofing Installation" style="width: 100%; height: 100%; object-fit: cover;">
+                <div class="gallery-overlay">
+                </div>
+            </div>
+            <div class="gallery-item">
+                <img src="roofing 2.png" alt="Commercial Building Roof Repair" style="width: 100%; height: 100%; object-fit: cover;">
+                <div class="gallery-overlay">
+                </div>
+            </div>
+            <div class="gallery-item">
+                <img src="roofing 3.jpg" alt="Residential Roof Maintenance" style="width: 100%; height: 100%; object-fit: cover;">
+                <div class="gallery-overlay">
+                </div>
+            </div>
+            <div class="gallery-item">
+                <img src="roofing 4.png" alt="Expert Roof Installation Team" style="width: 100%; height: 100%; object-fit: cover;">
+                <div class="gallery-overlay">
+                </div>
+            </div>
+            <div class="gallery-item">
+                <img src="roofing 5.jpg" alt="Professional Roofing Services" style="width: 100%; height: 100%; object-fit: cover;">
+                <div class="gallery-overlay">
+                </div>
+            </div>
+            <div class="gallery-item">
+                <img src="roofing 6.jpg" alt="Quality Roof Repair Work" style="width: 100%; height: 100%; object-fit: cover;">
+                <div class="gallery-overlay">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="testimonials" id="testimonials">
+        <div class="testimonials-container">
+            <h2 class="section-title">What Our Clients Say</h2>
+            <div class="testimonials-grid">
+                <div class="testimonial-card">
+                    <p>"ProRoof did an amazing job with our home! Professional, timely, and they exceeded our expectations. Highly recommend!"</p>
+                    <div class="testimonial-author">- Sarah Johnson</div>
+                </div>
+                <div class="testimonial-card">
+                    <p>"Best roofing company in the area. Great communication, fair pricing, and exceptional workmanship. Will hire again!"</p>
+                    <div class="testimonial-author">- Michael Rodriguez</div>
+                </div>
+                <div class="testimonial-card">
+                    <p>"Our commercial property is in excellent hands. They handle everything with professionalism and expertise. Thank you!"</p>
+                    <div class="testimonial-author">- Jennifer Lee</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Feedback Section -->
+    <section class="feedback-section" id="feedback">
+        <h2 class="section-title">Share Your Feedback</h2>
+        <div class="feedback-container">
+            <form class="feedback-form" onsubmit="handleFeedbackSubmit(event)">
+                <div class="form-group">
+                    <label for="feedback-name">Your Name *</label>
+                    <input type="text" id="feedback-name" name="feedback-name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="feedback-email">Email Address *</label>
+                    <input type="email" id="feedback-email" name="feedback-email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="feedback-rating">Rate Your Experience *</label>
+                    <div class="star-rating">
+                        <input type="radio" id="star5" name="rating" value="5" required>
+                        <label for="star5">★</label>
+                        <input type="radio" id="star4" name="rating" value="4">
+                        <label for="star4">★</label>
+                        <input type="radio" id="star3" name="rating" value="3">
+                        <label for="star3">★</label>
+                        <input type="radio" id="star2" name="rating" value="2">
+                        <label for="star2">★</label>
+                        <input type="radio" id="star1" name="rating" value="1">
+                        <label for="star1">★</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="feedback-service">Which Service Did You Use? *</label>
+                    <select id="feedback-service" name="feedback-service" required>
+                        <option value="">Select a service...</option>
+                        <option value="inspection">Inspection</option>
+                        <option value="installation">Installation</option>
+                        <option value="repair">Repair</option>
+                        <option value="maintenance">Maintenance</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="feedback-message">Your Feedback *</label>
+                    <textarea id="feedback-message" name="feedback-message" placeholder="Tell us about your experience..." required></textarea>
+                </div>
+
+                <button type="submit" class="feedback-submit">Submit Feedback</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Appointment Booking Section -->
+    <section class="appointment-section" id="appointment">
+        <h2 class="section-title">Book Your Appointment</h2>
+        <div class="form-container">
+            <form onsubmit="handleSubmit(event)">
+                <div class="form-group">
+                    <label for="name">Full Name *</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email Address *</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="phone">Phone Number *</label>
+                        <input type="tel" id="phone" name="phone" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="address">Address *</label>
+                        <input type="text" id="address" name="address" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="date">Preferred Date *</label>
+                        <input type="date" id="date" name="date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="time">Preferred Time *</label>
+                        <input type="time" id="time" name="time" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="service">Service Type *</label>
+                    <select id="service" name="service" required>
+                        <option value="">Select a service...</option>
+                        <option value="inspection">Free Inspection</option>
+                        <option value="installation">New Installation</option>
+                        <option value="repair">Roof Repair</option>
+                        <option value="maintenance">Maintenance</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="rooftype">Roof Type (Current/Desired) *</label>
+                    <select id="rooftype" name="rooftype" required>
+                        <option value="">Select roof type...</option>
+                        <option value="asphalt">Asphalt Shingles</option>
+                        <option value="metal">Metal</option>
+                        <option value="wood">Wood Shingles</option>
+                        <option value="slate">Slate Tiles</option>
+                        <option value="membrane">Membrane</option>
+                        <option value="green">Green Roofing</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="message">Additional Details</label>
+                    <textarea id="message" name="message" placeholder="Tell us about your roofing needs..."></textarea>
+                </div>
+
+                <button type="submit" class="submit-btn">Schedule Appointment</button>
+            </form>
+        </div>
+    </section>
+    <script>
+        function handleSubmit(event) {
+            event.preventDefault();
+            
+            // Get form values
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            const address = document.getElementById('address').value;
+            const date = document.getElementById('date').value;
+            const time = document.getElementById('time').value;
+            const service = document.getElementById('service').value;
+            const rooftype = document.getElementById('rooftype').value;
+            const message = document.getElementById('message').value;
+
+            // Simple validation
+            if (!name || !email || !phone || !address || !date || !time || !service || !rooftype) {
+                alert('Please fill in all required fields!');
+                return;
+            }
+
+            // Format and display success message
+            const appointmentSummary = `
+Appointment Confirmed!
+
+Name: ${name}
+Email: ${email}
+Phone: ${phone}
+Address: ${address}
+Date: ${date}
+Time: ${time}
+Service: ${service}
+Roof Type: ${rooftype}
+
+${message ? 'Additional Details: ' + message : ''}
+
+A confirmation email will be sent shortly. Thank you for choosing ProRoof!
+            `;
+
+            alert(appointmentSummary);
+            
+            // Reset form
+            document.querySelector('form').reset();
+        }
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Handle feedback form submission
+        function handleFeedbackSubmit(event) {
+            event.preventDefault();
+            
+            const name = document.getElementById('feedback-name').value;
+            const email = document.getElementById('feedback-email').value;
+            const rating = document.querySelector('input[name="rating"]:checked').value;
+            const service = document.getElementById('feedback-service').value;
+            const message = document.getElementById('feedback-message').value;
+
+            const feedbackSummary = `
+Thank You for Your Feedback!
+
+Name: ${name}
+Email: ${email}
+Rating: ${'★'.repeat(rating)}
+Service: ${service}
+Feedback: ${message}
+
+We appreciate your time and will use this feedback to improve our services!
+            `;
+
+            alert(feedbackSummary);
+            
+            // Reset form
+            document.querySelector('.feedback-form').reset();
+        }
+    </script>
+</body>
+</html>
