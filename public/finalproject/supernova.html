@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supernova Remnant Simulation</title>
+    <!-- Load Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <!-- Load Three.js for 3D rendering -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- OrbitControls for interactive camera movement -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <style>
+        /* Ensure the body and HTML take full height */
+        html, body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            height: 100%;
+            background-color: #0d1117; /* Dark background */
+        }
+        #container {
+            width: 100vw;
+            height: 100vh;
+        }
+        /* Style the info box */
+        #info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 10;
+            /* Allows interaction with the canvas underneath */
+            pointer-events: none; 
+        }
+        .info-card {
+            background: rgba(17, 24, 39, 0.8); /* dark-grayish background */
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(75, 85, 99, 0.5); /* border-gray-600 */
+        }
+    </style>
+</head>
+<body>
+    <div id="container"></div>
+
+    <div id="info" class="text-white p-4 rounded-lg info-card">
+        <h1 class="text-xl font-bold mb-2 text-indigo-400">Supernova Simulation</h1>
+        <p id="time-display" class="text-lg font-mono">Time: 0 years</p>
+        <p class="text-xs mt-2 text-gray-400">Drag to orbit, scroll to zoom.</p>
+        <p id="loading-indicator" class="mt-4 text-yellow-400">Initializing particles...</p>
+    </div>
+
+    <script type="module">
+        // Global variables for Three.js scene
+        let scene, camera, renderer, controls;
+        let points, geometry, material;
+        let starPoints; 
+        let time = 0;
+        // Particle count for a dense, dramatic look
+        const numParticles = 20000; 
+        
+        // Simulation Constants
+        const ENERGY = 2.5; 
+        const DENSITY = 0.8;
+        const LIMIT = 10;
+        const A_SCALE = 0.3;
+        const TIME_STEP_YEARS = 2; 
+
+        // Particle data arrays
+        const positions = new Float32Array(numParticles * 3);
+        const colors = new Float32Array(numParticles * 3);
+        const velocityVariation = new Float32Array(numParticles);
+        const initialPositions = new Float32Array(numParticles * 3); 
+
+        // --- PHYSICS FUNCTIONS ---
+
+        /**
+         * Calculates the Sedov-Taylor radius based on time (t), energy (E), and density (rho).
+         */
+        function sedovTaylorRadius(t, E, rho) {
+            if (t <= 0) return 0.01;
+            // R = A * (E * t^2 / rho)^(1/5)
+            return A_SCALE * Math.pow(E * (t * t) / rho, 0.2);
+        }
+
+        // --- SCENE SETUP ---
+
+        function init() {
+            const container = document.getElementById('container');
+            const aspectRatio = container.clientWidth / container.clientHeight;
+
+            // 1. Scene Setup
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x000000); 
+
+            // 2. Camera Setup
+            camera = new THREE.PerspectiveCamera(75, aspectRatio, 0.1, 1000);
+            camera.position.z = LIMIT * 1.5;
+
+            // 3. Renderer Setup
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            container.appendChild(renderer.domElement);
+
+            // 4. Controls (Drag to orbit)
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true; 
+            controls.dampingFactor = 0.05;
+            controls.minDistance = 1;
+            controls.maxDistance = LIMIT * 4;
+
+            // 5. Initialize Particles and Geometry
+            initializeParticles();
+            
+            // 6. Add Background Stars
+            addBackgroundStars(8000); 
+
+            document.getElementById('loading-indicator').textContent = "Ready. Drag canvas to rotate.";
+
+            // 7. Start the render loop
+            animateLoop();
+        }
+
+        // --- PARTICLE INITIALIZATION ---
+
+        function initializeParticles() {
+            const initialRadius = 0.01; 
+            
+            for (let i = 0; i < numParticles; i++) {
+                // Generate random spherical coordinates
+                const phi = Math.random() * 2 * Math.PI;
+                const costheta = Math.random() * 2 - 1;
+                const theta = Math.acos(costheta);
+
+                const r = initialRadius;
+                const x = r * Math.sin(theta) * Math.cos(phi);
+                const y = r * Math.sin(theta) * Math.sin(phi);
+                const z = r * Math.cos(theta);
+
+                const i3 = i * 3;
+
+                positions[i3] = x;
+                positions[i3 + 1] = y;
+                positions[i3 + 2] = z;
+
+                // Store normalized direction vector for expansion
+                const norm = Math.sqrt(x*x + y*y + z*z) || 1; 
+                initialPositions[i3] = x / norm;
+                initialPositions[i3 + 1] = y / norm;
+                initialPositions[i3 + 2] = z / norm;
+
+                // Apply slight velocity variation for a non-perfect shell
+                velocityVariation[i] = Math.random() * 0.2 + 0.9;
+            }
+
+            // Create BufferGeometry
+            geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            geometry.computeBoundingSphere();
+
+            // Create Material
+            material = new THREE.PointsMaterial({
+                size: 0.08, 
+                vertexColors: true, 
+                blending: THREE.AdditiveBlending, 
+                transparent: true,
+                opacity: 0.9,
+            });
+
+            // Create the Points object and add to scene
+            points = new THREE.Points(geometry, material);
+            scene.add(points);
+        }
+        
+        // --- BACKGROUND STAR FIELD ---
+        function addBackgroundStars(count) {
+            const starGeometry = new THREE.BufferGeometry();
+            const starPositions = new Float32Array(count * 3);
+            const starColors = new Float32Array(count * 3);
+            
+            const starDistance = LIMIT * 15; 
+
+            for (let i = 0; i < count; i++) {
+                const i3 = i * 3;
+                
+                const phi = Math.random() * 2 * Math.PI;
+                const costheta = Math.random() * 2 - 1;
+                const theta = Math.acos(costheta);
+                
+                const r = starDistance * (0.8 + Math.random() * 0.2); 
+                
+                starPositions[i3] = r * Math.sin(theta) * Math.cos(phi);
+                starPositions[i3 + 1] = r * Math.sin(theta) * Math.sin(phi);
+                starPositions[i3 + 2] = r * Math.cos(theta);
+                
+                const brightness = Math.random() * 0.5 + 0.5; 
+                starColors[i3] = brightness;
+                starColors[i3 + 1] = brightness;
+                starColors[i3 + 2] = brightness;
+            }
+
+            starGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+            starGeometry.setAttribute('color', new THREE.BufferAttribute(starColors, 3));
+
+            const starMaterial = new THREE.PointsMaterial({
+                size: 0.1,
+                vertexColors: true,
+                blending: THREE.AdditiveBlending,
+                transparent: true,
+                opacity: 0.8
+            });
+
+            starPoints = new THREE.Points(starGeometry, starMaterial);
+            scene.add(starPoints);
+        }
+
+
+        // --- SIMULATION UPDATE LOGIC ---
+
+        function updateSimulation(t) {
+            const currentRadius = sedovTaylorRadius(t, ENERGY, DENSITY);
+            // Temperature proxy for color, decreases as radius increases
+            const temperature = 1.0 / (Math.pow(currentRadius, 0.5) + 0.1); 
+            
+            for (let i = 0; i < numParticles; i++) {
+                const i3 = i * 3;
+
+                const scaleFactor = currentRadius * velocityVariation[i];
+                
+                // Update position
+                positions[i3] = initialPositions[i3] * scaleFactor;
+                positions[i3 + 1] = initialPositions[i3 + 1] * scaleFactor;
+                positions[i3 + 2] = initialPositions[i3 + 2] * scaleFactor;
+
+                // Color calculation (Hot/Blue -> Cool/Red)
+                const r = Math.min(1.0, 1.0 - temperature * 0.8); 
+                const g = Math.min(1.0, temperature * 0.6); 
+                const b = Math.min(1.0, temperature * 1.2);       
+
+                colors[i3] = r;
+                colors[i3 + 1] = g;
+                colors[i3 + 2] = b;
+            }
+
+            geometry.attributes.position.needsUpdate = true;
+            geometry.attributes.color.needsUpdate = true;
+            
+            const phase = t < 100 ? "Free Expansion" : "Sedov-Taylor Phase";
+            document.getElementById('time-display').innerHTML = 
+                `Time: <span class="text-yellow-400">${Math.round(t)}</span> years<br>Phase: ${phase}`;
+        }
+
+        // --- RENDER LOOP ---
+
+        function animateLoop() {
+            requestAnimationFrame(animateLoop);
+
+            // Increment time (adjusted for faster simulation: 0.1)
+            time += TIME_STEP_YEARS * 0.1; 
+            
+            // Loop the simulation
+            if (time > 600) {
+                time = 0; 
+            }
+
+            updateSimulation(time);
+            
+            controls.update(); 
+            renderer.render(scene, camera);
+        }
+        
+        // --- EVENT HANDLERS ---
+        
+        function onWindowResize() {
+            const container = document.getElementById('container');
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+            
+            if (camera) {
+                camera.aspect = width / height;
+                camera.updateProjectionMatrix();
+            }
+            if (renderer) {
+                renderer.setSize(width, height);
+            }
+        }
+
+        // Start the application when the window loads
+        window.onload = function () {
+            init();
+        }
+
+        // Handle window resizing
+        window.addEventListener('resize', onWindowResize);
+    </script>
+</body>
+</html>

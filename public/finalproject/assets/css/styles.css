@@ -1,0 +1,32 @@
+/* Styles for 4D Research Page */
+:root{
+  --bg:#f8fafc;
+  --card:#ffffff;
+  --muted:#6b7280;
+  --accent:#0f766e;
+  --radius:8px;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Arial;background:var(--bg);color:#0f172a}
+.container{max-width:1100px;margin:2rem auto;padding:1rem;display:grid;grid-template-columns:1fr;gap:1rem}
+.header{display:flex;justify-content:space-between;align-items:center;background:var(--card);padding:1rem;border-radius:var(--radius);box-shadow:0 1px 4px rgba(2,6,23,0.06)}
+.logo{font-weight:700;color:var(--accent)}
+.lead{color:var(--muted)}
+.main{display:grid;grid-template-columns:1fr 320px;gap:1rem}
+.article{background:var(--card);padding:1rem;border-radius:var(--radius);box-shadow:0 1px 4px rgba(2,6,23,0.04)}
+.sidebar{background:var(--card);padding:1rem;border-radius:var(--radius);box-shadow:0 1px 4px rgba(2,6,23,0.04);height:max-content}
+.section{margin-bottom:1rem}
+.section h2{margin:0 0 .5rem}
+.meta{font-size:0.9rem;color:var(--muted);margin-bottom:1rem}
+.split{display:flex;gap:1rem}
+.visualize{background:#0f172a;color:white;padding:1rem;border-radius:8px}
+.canvas-wrap{background:#050816;border-radius:6px;padding:0.5rem;display:flex;flex-direction:column;gap:0.5rem}
+canvas{background:#090b15;border-radius:4px;width:100%;height:420px;display:block}
+.controls{display:flex;gap:0.5rem;flex-wrap:wrap}
+.control{background:#fff;padding:0.35rem 0.5rem;border-radius:6px;color:#111;display:flex;gap:0.5rem;align-items:center}
+.btn{background:var(--accent);color:white;padding:0.4rem .6rem;border-radius:6px;border:none;cursor:pointer}
+.citation{font-size:0.9rem;color:var(--muted)}
+@media(max-width:900px){
+  .main{grid-template-columns:1fr}
+  canvas{height:300px}
+}
