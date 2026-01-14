@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Jupiter</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      min-height: 100%;
+      overflow-x: hidden;
+      background: #000;
+      color: #ddd;
+      font-family: system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* 3D viewer container */
+    #viewer {
+      width: 100%;
+      height: 60vh;
+      min-height: 420px;
+      position: relative;
+      background: radial-gradient(ellipse at center, #04040a 0%, #000 60%);
+      overflow: hidden;
+      transition: height 360ms ease;
+    }
+
+    #info {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #ccc;
+      font-size: 13px;
+      opacity: 0.95;
+      z-index: 10;
+      text-align: center;
+      pointer-events: none;
+    }
+
+    /* Research / content area */
+    #content {
+      max-width: 920px;
+      margin: 24px auto 72px;
+      padding: 20px 22px;
+      background: rgba(255,255,255,0.02);
+      border-radius: 8px;
+      box-shadow: 0 6px 30px rgba(0,0,0,0.6);
+      color: #ddd;
+      line-height: 1.6;
+    }
+
+    #content h1, #content h2 { color: #fff; margin: 0.8rem 0 0.4rem; }
+    #content p, #content ul { margin: 0.5rem 0; color: #cfd8dc; }
+    #content ul { padding-left: 1.2rem; }
+    #content small { color: #9ea7ab; }
+  </style>
+</head>
+<body>
+<div id="viewer">
+  <div id="info">Jupiter<br>Drag = rotate • Scroll = zoom</div>
+</div>
+
+<div id="content">
+  <h1>Jupiter — In-depth Overview</h1>
+  <p>Jupiter is the largest planet in our Solar System and a gas giant composed mainly of hydrogen and helium. Below is a concise overview of Jupiter's formation, structure, atmosphere, magnetosphere, moons, distinctive features, and exploration history.</p>
+
+  <h2>Formation & Evolution</h2>
+  <p>Jupiter formed early in the Solar System (~4.5 billion years ago) by accreting gas and solids from the protoplanetary disk. Its large mass allowed it to capture a massive hydrogen-helium envelope and influence the architecture of the planetary system.</p>
+
+  <h2>Internal Structure</h2>
+  <p>Jupiter has no solid surface; it likely contains a dense core (composition debated), surrounded by metallic hydrogen where extreme pressures create conductive fluid that contributes to the planet's magnetic field, and an outer molecular hydrogen envelope.</p>
+
+  <h2>Atmosphere & Weather</h2>
+  <p>Jupiter's atmosphere displays banded cloud belts, strong zonal winds, and long-lived storms such as the Great Red Spot. Clouds are made of ammonia, ammonium hydrosulfide, and water at different altitudes, driven by vigorous convection and shear.</p>
+
+  <h2>Magnetosphere</h2>
+  <p>Jupiter's magnetosphere is the largest in the Solar System, powered by the planet's rotation and conducting interior. It traps energetic particles and generates intense aurorae at the poles.</p>
+
+  <h2>Rings & Moons</h2>
+  <p>Jupiter has a faint ring system and a rich retinue of moons—four large Galilean moons (Io, Europa, Ganymede, Callisto) and many smaller satellites. These moons exhibit geological diversity and are major targets for exploration (e.g., Europa's subsurface ocean).</p>
+
+  <h2>Great Red Spot & Dynamics</h2>
+  <p>The Great Red Spot is a persistent anticyclonic storm larger than Earth. Jupiter's rapid rotation (~9.9 hours) and deep atmospheric flows drive complex weather phenomena on global scales.</p>
+
+  <h2>Exploration & Science</h2>
+  <p>Jupiter has been studied by flybys (Pioneer, Voyager, Galileo) and currently by Juno orbiting the planet, revealing detailed measurements of its gravity, magnetic field, and atmospheric composition.</p>
+
+  <h2>Quick Facts</h2>
+  <ul>
+    <li>Mean radius: ~69,911 km</li>
+    <li>Mass: ~1.90 × 10<sup>27</sup> kg</li>
+    <li>Rotation period: ~9.93 hours</li>
+    <li>Main composition: H₂ and He</li>
+    <li>Number of known moons: 79+</li>
+  </ul>
+
+  <p><small>Sources: NASA (Juno & Galileo), ESA, peer-reviewed planetary science literature.</small></p>
+</div>
+
+<!-- Three.js r124 (NO modules) -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.124.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.124.0/examples/js/controls/OrbitControls.js"></script>
+
+<script>
+  var scene = new THREE.Scene();
+
+  var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 5000);
+  camera.position.set(0, 1.6, 6);
+
+  var viewer = document.getElementById('viewer');
+
+  var renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(viewer.clientWidth, viewer.clientHeight);
+  renderer.setPixelRatio(window.devicePixelRatio);
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.domElement.style.display = 'block';
+  viewer.appendChild(renderer.domElement);
+
+  // Ensure camera uses viewer aspect ratio
+  camera.aspect = viewer.clientWidth / viewer.clientHeight;
+  camera.updateProjectionMatrix();
+
+  var controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.enablePan = false;
+
+  // ===================== LIGHTING =====================
+
+  var sunLight = new THREE.DirectionalLight(0xffffff, 2.5);
+  scene.add(sunLight);
+  scene.add(new THREE.AmbientLight(0x111111));
+
+  // ===================== SUN =====================
+
+  var sun = new THREE.Mesh(
+    new THREE.SphereGeometry(0, 0, 0),
+    new THREE.MeshBasicMaterial({
+      map: new THREE.TextureLoader().load('https://threejs.org/examples/textures/planets/sun.jpg')
+    })
+  );
+  scene.add(sun);
+
+  // ===================== Mars =====================
+
+  var loader = new THREE.TextureLoader();
+
+  var jupiter = new THREE.Mesh(
+    new THREE.SphereGeometry(3, 64, 64),
+    new THREE.MeshPhongMaterial({
+      map: loader.load('https://tse4.mm.bing.net/th/id/OIP.RMuD85FJiiczpyv4yXEU3AHaDt?rs=1&pid=ImgDetMain&o=7&rm=3https://tse4.mm.bing.net/th/id/OIP.RMuD85FJiiczpyv4yXEU3AHaDt?rs=1&pid=ImgDetMain&o=7&rm=3'),
+      normalMap: loader.load('https://tse3.mm.bing.net/th/id/OIP.Keb6k3Mi-rV6i1v8h-IXRgHaHa?cb=ucfimg2&ucfimg=1&w=826&h=826&rs=1&pid=ImgDetMain&o=7&rm=3')
+    })
+  );
+  // small axial tilt for Jupiter (~3.13°)
+  jupiter.rotation.z = THREE.Math.degToRad(3.13);
+  scene.add(jupiter);
+
+  // ===================== NO NIGHT TEXTURE =====================
+
+  // City/night texture removed completely
+
+  var cityLights = null;
+
+  // ===================== STARS =====================
+
+  var starsGeo = new THREE.BufferGeometry();
+  var starCount = 12000;
+  var positions = new Float32Array(starCount * 3);
+
+  for (var i = 0; i < starCount * 3; i++) {
+    positions[i] = (Math.random() - 0.5) * 4000;
+  }
+
+  starsGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+  var stars = new THREE.Points(
+    starsGeo,
+    new THREE.PointsMaterial({
+      color: 0xffffff,
+      size: 0.7,
+      sizeAttenuation: true
+    })
+  );
+
+  scene.add(stars);
+
+  // ===================== ASTRONOMY =====================
+
+  var cycleStart = Date.now();
+  var CYCLE_DURATION = 15000;
+
+  function updateSun() {
+    var elapsed = (Date.now() - cycleStart) % CYCLE_DURATION;
+    var angle = (elapsed / CYCLE_DURATION) * Math.PI * 2;
+
+    var x = Math.cos(angle) * 10;
+    var z = Math.sin(angle) * 10;
+
+    sun.position.set(x, 0, z);
+    sunLight.position.copy(sun.position);
+
+    var dayFactor = THREE.Math.clamp((x / 10 + 1) / 2, 0, 1);
+    // no night texture to fade
+  }
+
+  // ===================== RESIZE =====================
+
+  window.addEventListener('resize', function () {
+    renderer.setSize(viewer.clientWidth, viewer.clientHeight);
+    camera.aspect = viewer.clientWidth / viewer.clientHeight;
+    camera.updateProjectionMatrix();
+  });
+
+  // ===================== LOOP =====================
+
+  function animate() {
+    requestAnimationFrame(animate);
+
+    jupiter.rotation.y += 0.0009;
+
+    jupiter.position.set(0, 0, 0);
+    // no night texture
+
+    updateSun();
+
+    controls.update();
+    renderer.render(scene, camera);
+  }
+
+  animate();
+</script>
+</body>
+</html>

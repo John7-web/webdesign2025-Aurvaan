@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Uranus</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      min-height: 100%;
+      overflow-x: hidden;
+      background: #000;
+      color: #ddd;
+      font-family: system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* 3D viewer container */
+    #viewer {
+      width: 100%;
+      height: 60vh;
+      min-height: 420px;
+      position: relative;
+      background: radial-gradient(ellipse at center, #020317 0%, #000 60%);
+      overflow: hidden;
+      transition: height 360ms ease;
+    }
+
+    #info {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #ccc;
+      font-size: 13px;
+      opacity: 0.95;
+      z-index: 10;
+      text-align: center;
+      pointer-events: none;
+    }
+
+    /* Research / content area */
+    #content {
+      max-width: 920px;
+      margin: 24px auto 72px;
+      padding: 20px 22px;
+      background: rgba(255,255,255,0.02);
+      border-radius: 8px;
+      box-shadow: 0 6px 30px rgba(0,0,0,0.6);
+      color: #ddd;
+      line-height: 1.6;
+    }
+
+    #content h1, #content h2 { color: #fff; margin: 0.8rem 0 0.4rem; }
+    #content p, #content ul { margin: 0.5rem 0; color: #cfd8dc; }
+    #content ul { padding-left: 1.2rem; }
+    #content small { color: #9ea7ab; }
+  </style>
+</head>
+<body>
+<div id="viewer">
+  <div id="info">Uranus<br>Drag = rotate • Scroll = zoom</div>
+</div>
+
+<div id="content">
+  <h1>Uranus — In-depth Overview</h1>
+  <p>Uranus is an ice giant and the seventh planet from the Sun, known for its extreme axial tilt and faint ring system. This section summarizes Uranus’ formation, interior, atmosphere, rings, moons, magnetosphere, and exploration history.</p>
+
+  <h2>Formation & Evolution</h2>
+  <p>Uranus formed about 4.5 billion years ago in the outer Solar System. Its composition of ices and gases suggests accretion of volatile-rich planetesimals, and a giant impact early in its history likely produced its extreme axial tilt (~98°).</p>
+
+  <h2>Internal Structure</h2>
+  <p>Uranus likely has a rocky core, an icy mantle composed of water, ammonia, and methane ices, and an outer envelope of hydrogen and helium. The 'ice' mantle may behave fluidly under high pressure and temperature conditions.</p>
+
+  <h2>Atmosphere & Weather</h2>
+  <p>Uranus’ atmosphere contains hydrogen, helium, and methane (which gives the blue-green color). The planet shows banded clouds, seasonal changes due to its tilt, and occasionally visible storms revealed by Hubble and ground-based observations.</p>
+
+  <h2>Rings & Moons</h2>
+  <p>Uranus has a system of faint rings and 27 known moons, including Titania, Oberon, Ariel, and Miranda, which display diverse geology such as extensional faults and resurfaced terrain.</p>
+
+  <h2>Magnetosphere</h2>
+  <p>Uranus’ magnetic field is significantly tilted and offset from its rotational axis, creating complex interactions with the solar wind and contributing to auroral phenomena.</p>
+
+  <h2>Exploration & Science</h2>
+  <p>Voyager 2 flew past Uranus in 1986, providing most of our close-up knowledge. Future missions and telescopic observations aim to better characterize its interior, atmosphere, rings, and satellites.</p>
+
+  <h2>Quick Facts</h2>
+  <ul>
+    <li>Mean radius: ~25,362 km</li>
+    <li>Mass: ~8.68 × 10<sup>25</sup> kg</li>
+    <li>Rotation period: ~17.2 hours</li>
+    <li>Main atmospheric gases: H₂, He, with methane traces</li>
+    <li>Number of known moons: 27</li>
+  </ul>
+
+  <p><small>Sources: Voyager 2, Hubble Space Telescope, NASA planetary research articles.</small></p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.124.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.124.0/examples/js/controls/OrbitControls.js"></script>
+
+<script>
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+  camera.position.set(0, 2, 7);
+
+  const viewer = document.getElementById('viewer');
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(viewer.clientWidth, viewer.clientHeight);
+  renderer.setPixelRatio(window.devicePixelRatio);
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.domElement.style.display = 'block';
+  viewer.appendChild(renderer.domElement);
+
+  // Ensure camera uses viewer aspect ratio
+  camera.aspect = viewer.clientWidth / viewer.clientHeight;
+  camera.updateProjectionMatrix();
+
+  const controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;  
+
+  // LIGHTS / SUN
+  scene.add(new THREE.AmbientLight(0x222222));
+  const sunLight = new THREE.PointLight(0xffffff, 3, 100);
+  scene.add(sunLight);
+
+  const loader = new THREE.TextureLoader();
+  const sunTexture = loader.load('https://threejs.org/examples/textures/sprites/sun.png');
+  const sun = new THREE.Mesh(
+    new THREE.SphereGeometry(0, 0, 0),
+    new THREE.MeshBasicMaterial({ map: sunTexture })
+  );
+  scene.add(sun);
+
+  // URANUS
+  const uranusTexture = loader.load('https://tse4.mm.bing.net/th/id/OIP.BGX7rXMbvKPWyI027lJKHAHaDt?rs=1&pid=ImgDetMain&o=7&rm=3');
+  uranusTexture.encoding = THREE.sRGBEncoding;
+
+  const uranus = new THREE.Mesh(
+    new THREE.SphereGeometry(1.2
+    , 64, 64),
+    new THREE.MeshStandardMaterial({
+      map: uranusTexture,
+      roughness: 0.9,
+      metalness: 0.0
+    })
+  );
+  uranus.rotation.z = THREE.Math.degToRad(97.77);
+  scene.add(uranus);
+
+  // RINGS
+  const ringGeo = new THREE.RingGeometry(1.35, 1.7, 256);
+  const ringMat = new THREE.MeshBasicMaterial({ color: 0xcfd9e6, transparent: true, opacity: 0.6, side: THREE.DoubleSide });
+  const rings = new THREE.Mesh(ringGeo, ringMat);
+  rings.rotation.x = Math.PI / 2;
+  uranus.add(rings);
+
+  // STARS
+  const starsGeo = new THREE.BufferGeometry();
+  const positions = new Float32Array(9000 * 3);
+  for (let i = 0; i < positions.length; i++) positions[i] = (Math.random() - 0.5) * 3000;
+  starsGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  scene.add(new THREE.Points(starsGeo, new THREE.PointsMaterial({ size: 0.7 })));
+
+  // ANIMATION LOOP
+  function animate() {
+    requestAnimationFrame(animate);
+
+    uranus.rotation.y += 0.0004;
+
+    const time = Date.now() * 0.0002;
+    const radius = 6;
+    sun.position.set(Math.cos(time) * radius, 2, Math.sin(time) * radius);
+    sunLight.position.copy(sun.position);
+
+    controls.update();
+    renderer.render(scene, camera);
+  }
+
+  animate();
+
+  // RESIZE
+  window.addEventListener('resize', () => {
+    renderer.setSize(viewer.clientWidth, viewer.clientHeight);
+    camera.aspect = viewer.clientWidth / viewer.clientHeight;
+    camera.updateProjectionMatrix();
+  });
+</script>
+</body>
+</html>
