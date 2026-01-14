@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>3D Black Hole Simulation</title>
     <style>
-        html, body { height: 100%; margin: 0; background-color: #000; }
+        html, body { min-height: 100%; margin: 0; overflow-x: hidden; background-color: #000; }
         body { display: flex; flex-direction: column; }
 
         /* Canvas container takes available space above the info panel and keeps a healthy minimum height */
@@ -67,7 +67,24 @@
         @media (max-width:700px) {
             .canvas-container { min-height: 240px; }
             #info-bottom { padding: 12px; font-size: 0.95rem; }
+            #content { margin: 12px 12px 72px; padding: 14px; }
         }
+
+        /* Research / content area */
+        #content {
+            max-width: 920px;
+            margin: 18px auto 88px;
+            padding: 20px;
+            background: rgba(255,255,255,0.02);
+            border-radius: 8px;
+            box-shadow: 0 6px 30px rgba(0,0,0,0.6);
+            color: #ddd;
+            line-height: 1.6;
+        }
+        #content h1, #content h2 { color: #fff; margin: 0.6rem 0 0.4rem; }
+        #content p, #content ul { margin: 0.5rem 0; color: #cfd8dc; }
+        #content ul { padding-left: 1.2rem; }
+        #content small { color: #9ea7ab; }
     </style>
     <!-- Import Map for Three.js and Addons -->
     <script type="importmap">
@@ -85,47 +102,7 @@
         <div id="blackhole-canvas"></div>
     </div>
 
-    <aside id="info-bottom" aria-label="Black Hole Information">
-        <button id="infoToggle" class="info-toggle" aria-expanded="true" aria-controls="info-bottom" title="Collapse panel">▲</button>
-        <h2>Black Hole Information</h2>
-        <p>This visualization shows a simplified black hole with an accretion disk and photon ring.</p>
-        <ul>
-            <li>Disk particles: <strong id="paramDiskCount"></strong></li>
-            <li>Starfield count: <strong id="paramStarCount"></strong></li>
-            <li>Disk inner radius: <strong id="paramDiskInner"></strong></li>
-            <li>Disk outer radius: <strong id="paramDiskOuter"></strong></li>
-        </ul>
-
-        <hr>
-
-        <div class="info-section">
-            <h3>What is a black hole?</h3>
-            <p>A black hole is a region of spacetime where gravity is so strong that nothing, not even light, can escape once it passes the event horizon. The visible bright ring around a hole comes from hot material in the accretion disk and strongly lensed light.</p>
-        </div>
-
-        <div class="info-section">
-            <h3>How do black holes form?</h3>
-            <p>Most form when a very massive star runs out of fuel and collapses under its own gravity in a supernova explosion, leaving behind a compact remnant that can become a black hole. Black holes can also grow by merging with other black holes or by accreting matter.</p>
-        </div>
-
-        <div class="info-section">
-            <h3>How do they work?</h3>
-            <p>Gravity near a black hole is extreme. Matter falling in forms an accretion disk that heats up and shines; magnetic fields and rotation can launch relativistic jets. The event horizon marks the point of no return; inside lies the singularity (as predicted by classical general relativity).</p>
-        </div>
-
-        <div class="info-section">
-            <h3>Types</h3>
-            <p>Black holes range from stellar-mass (a few times the Sun's mass) to supermassive (millions–billions of solar masses) found at galactic centers. Intermediate-mass and primordial black holes are topics of active research.</p>
-        </div>
-
-        <div class="info-section">
-            <h3>Interesting facts</h3>
-            <ul>
-                <li>Gravitational lensing around black holes produces features like the photon ring you can see in the simulation.</li>
-                <li>Supermassive black holes influence galaxy evolution and can power quasars.</li>
-                <li>Objects don't get "sucked in" from far away; they must fall into the black hole's gravitational well.</li>
-            </ul>
-        </div>
+  
     </aside>
 
     <script type="module">

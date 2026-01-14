@@ -1,445 +1,227 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Interactive 3D Stellar Classification</title>
-    <style>
-        body { margin: 0; overflow: hidden; background-color: #050505; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        canvas { display: block; }
-        
-        /* UI Overlay Container */
-        #ui-container {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            pointer-events: none; /* Let clicks pass through to canvas if needed */
-            z-index: 10;
-        }
+  <meta charset="UTF-8" />
+  <title>3D Sun Simulator with Smooth Switching</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      min-height: 100%;
+      overflow-x: hidden;
+      background: #000;
+      color: #ddd;
+      font-family: system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
 
-        /* Star Selection Buttons */
-        .controls {
-            pointer-events: auto;
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
+    /* 3D viewer container */
+    #viewer {
+      width: 100%;
+      height: 60vh;
+      min-height: 420px;
+      position: relative;
+      background: radial-gradient(ellipse at center, #160804 0%, #000 60%);
+      overflow: hidden;
+      transition: height 360ms ease;
+    }
 
-        button {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: #fff;
-            padding: 10px 20px;
-            cursor: pointer;
-            border-radius: 5px;
-            backdrop-filter: blur(5px);
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 0.8rem;
-        }
+    #info {
+      position: absolute;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #ccc;
+      font-size: 13px;
+      opacity: 0.95;
+      z-index: 10;
+      text-align: center;
+      pointer-events: none;
+    }
 
-        button:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-2px);
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
-        }
+    #buttons {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+    }
 
-        button.active {
-            background: rgba(255, 255, 255, 0.9);
-            color: #000;
-            box-shadow: 0 0 20px currentColor;
-        }
+    #buttons button {
+      margin: 0 5px;
+      padding: 5px 10px;
+      font-size: 14px;
+    }
 
-        /* Collapsible Info Panel */
-        #info-panel {
-            pointer-events: auto;
-            width: 350px;
-            background: rgba(0, 0, 0, 0.8);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
-            overflow: hidden;
-            transition: max-height 0.5s ease-out;
-            max-height: 40px; /* Collapsed height */
-        }
+    /* Research / content area */
+    #content {
+      max-width: 920px;
+      margin: 24px auto 72px;
+      padding: 20px 22px;
+      background: rgba(255,255,255,0.02);
+      border-radius: 8px;
+      box-shadow: 0 6px 30px rgba(0,0,0,0.6);
+      color: #ddd;
+      line-height: 1.6;
+    }
 
-        #info-panel.expanded {
-            max-height: 600px;
-        }
-
-        #info-header {
-            padding: 10px 15px;
-            background: rgba(255, 255, 255, 0.1);
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-weight: bold;
-        }
-
-        #info-header:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        #info-content {
-            padding: 15px;
-        }
-
-        /* Data Table */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.85rem;
-            margin-top: 10px;
-        }
-
-        th, td {
-            text-align: left;
-            padding: 8px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        th {
-            color: #aaa;
-            font-weight: normal;
-        }
-
-        .highlight {
-            color: #4db8ff;
-            font-weight: bold;
-        }
-
-        .toggle-icon {
-            font-size: 1.2rem;
-            transition: transform 0.3s;
-        }
-        
-        #info-panel.expanded .toggle-icon {
-            transform: rotate(180deg);
-        }
-
-        h2 { margin-top: 0; font-size: 1.2rem; border-bottom: 1px solid #444; padding-bottom: 5px; }
-        p { color: #ccc; line-height: 1.4; font-size: 0.9rem; }
-
-        /* Bottom information panel (similar to blackholes.html) */
-        #info-bottom {
-            background: rgba(6,6,8,0.95);
-            color: #fff;
-            padding: 14px 18px;
-            font-family: sans-serif;
-            box-shadow: 0 -4px 12px rgba(0,0,0,0.6);
-            position: fixed;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            overflow: hidden;
-            max-height: 320px; /* expanded */
-            transition: max-height 300ms ease, padding 300ms ease;
-            z-index: 20;
-        }
-        /* Collapsed state */
-        #info-bottom.collapsed {
-            max-height: 44px; /* small bar */
-            padding-top: 8px;
-            padding-bottom: 8px;
-        }
-
-        #info-bottom h2 { margin: 0 0 6px 0; font-size: 1rem; }
-        #info-bottom h3 { margin: 8px 0 6px 0; font-size: 0.95rem; color: #fff; }
-        #info-bottom p { margin: 6px 0 8px 0; color:#ddd; font-size:0.95rem; }
-        #info-bottom ul { margin: 4px 0 0 18px; color:#ddd; }
-        #info-bottom .info-section { margin-top: 8px; color: #ddd; }
-        #info-bottom hr { border: none; border-top: 1px solid rgba(255,255,255,0.06); margin: 10px 0; }
-
-        /* Toggle button */
-        .info-toggle {
-            position: absolute;
-            right: 10px;
-            top: 8px;
-            background: rgba(20,20,22,0.25);
-            border: 1px solid rgba(255,255,255,0.06);
-            color: #fff;
-            padding: 6px 8px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            line-height: 1;
-            backdrop-filter: blur(4px);
-        }
-
-        @media (max-width:700px) {
-            #info-bottom { padding: 12px; font-size: 0.95rem; }
-        }
-    </style>
+    #content h1, #content h2 { color: #fff; margin: 0.8rem 0 0.4rem; }
+    #content p, #content ul { margin: 0.5rem 0; color: #cfd8dc; }
+    #content ul { padding-left: 1.2rem; }
+    #content small { color: #9ea7ab; }
+  </style>
 </head>
 <body>
+<div id="viewer">
+  <div id="info">Realistic Sun Simulator</div>
+  <div id="buttons">
+    <button onclick="switchSun(0)">Yellow Dwarf Star</button>
+    <button onclick="switchSun(1)">Red Dwarf Star</button>
+    <button onclick="switchSun(2)">Blue Giant Star</button>
+  </div>
+</div>
 
-    <div id="ui-container">
-        <div class="controls">
-            <button onclick="changeStar('M')" style="border-color: #ff4d4d;">Red Dwarf</button>
-            <button onclick="changeStar('G')" class="active" style="border-color: #ffdd00;">Yellow Dwarf</button>
-            <button onclick="changeStar('O')" style="border-color: #4d94ff;">Blue Giant</button>
-        </div>
+<div id="content">
+  <h1>Sun — In-depth Overview</h1>
+  <p>The Sun is a G-type main-sequence star (G2V) at the center of our Solar System and the primary source of energy for Earth. Below is an overview of the Sun's structure, energy production, magnetic activity, solar wind, and its influence on the Solar System.</p>
 
-        <div id="info-panel" onclick="toggleInfo()">
-            <div id="info-header">
-                <span>Stellar Data Log</span>
-                <span class="toggle-icon">▼</span>
-            </div>
-            <div id="info-content">
-                <h2 id="star-name">Sun (G-Type)</h2>
-                <p id="star-desc">A yellow dwarf star. It is the most familiar type of star to us, supporting life on Earth.</p>
-                
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Class</th>
-                            <th>Color</th>
-                            <th>Temp (K)</th>
-                            <th>Lifespan</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr id="row-m"><td>M (Red)</td><td>Red</td><td>~3,000</td><td>Trillions yrs</td></tr>
-                        <tr id="row-g" class="highlight"><td>G (Sun)</td><td>Yellow</td><td>~5,800</td><td>10 Billion yrs</td></tr>
-                        <tr id="row-o"><td>O (Blue)</td><td>Blue</td><td>~30,000+</td><td>~10 Million yrs</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+  <h2>Formation & Evolution</h2>
+  <p>The Sun formed about 4.6 billion years ago by gravitational collapse of a region in a molecular cloud. It is currently in the stable hydrogen-burning phase (main sequence) and will eventually evolve into a red giant before shedding outer layers and leaving a white dwarf.</p>
 
-    <!-- Bottom information panel (Sun/Stellar info) -->
-    <aside id="info-bottom" aria-label="Sun Information">
-        <button id="infoToggle" class="info-toggle" aria-expanded="true" aria-controls="info-bottom" title="Collapse panel">▲</button>
-        <h2>Sun & Stellar Information</h2>
-        <p id="info-summary">A yellow dwarf star like our Sun provides heat and light necessary for life on Earth; stars create heavier elements via fusion and exhibit a lifecycle dependent on mass.</p>
-        <ul>
-            <li>Class: <strong id="paramClass">G (Sun)</strong></li>
-            <li>Color: <strong id="paramColor">Yellow</strong></li>
-            <li>Temperature: <strong id="paramTemp">~5,800 K</strong></li>
-            <li>Lifespan: <strong id="paramLifespan">~10 Billion yrs</strong></li>
-        </ul>
+  <h2>Internal Structure & Energy</h2>
+  <p>The Sun's internal layers include the core (where nuclear fusion of hydrogen to helium powers the star), the radiative zone (energy transport via photons), and the convective zone (bulk motion transports energy to the surface).</p>
 
-        <hr>
+  <h2>Photosphere, Chromosphere & Corona</h2>
+  <p>The visible surface is the photosphere; above it lie the chromosphere and the hot, tenuous corona. The corona extends far into space and is the source of the solar wind and coronal mass ejections (CMEs).</p>
 
-        <div class="info-section">
-            <h3>What is a star?</h3>
-            <p>Stars are massive spheres of plasma held together by gravity and powered by nuclear fusion at their cores. Fusion converts light elements into heavier ones and releases energy as light and heat.</p>
-        </div>
+  <h2>Magnetic Activity</h2>
+  <p>The Sun's magnetic field drives sunspots, flares, and CMEs which can influence space weather and affect Earth’s magnetosphere, satellites, and power grids.</p>
 
-        <div class="info-section">
-            <h3>How do stars form?</h3>
-            <p>Stars form from collapsing clouds of gas and dust in molecular clouds. As gravity pulls material together, the core heats up until fusion ignites, creating a new star.</p>
-        </div>
+  <h2>Solar Wind & Influence</h2>
+  <p>The solar wind is a supersonic plasma flow from the corona that shapes planetary magnetospheres and contributes to phenomena such as aurorae. The heliosphere formed by solar wind surrounds the Solar System.</p>
 
-        <div class="info-section">
-            <h3>Lifecycle</h3>
-            <p>Star lifecycles depend on mass. Low-mass stars live very long as red dwarfs; sun-like stars become red giants and then white dwarfs; massive stars may explode as supernovae and leave neutron stars or black holes.</p>
-        </div>
+  <h2>Stellar Types & Life Cycle</h2>
+  <p>Stars are classified by temperature and spectral type. The Sun is a relatively stable, middle-aged star; other stars (red dwarfs, giants, blue supergiants) have different lifetimes and influence on their systems.</p>
 
-        <div class="info-section">
-            <h3>Interesting facts</h3>
-            <ul>
-                <li>The Sun's energy comes from fusing hydrogen into helium in its core.</li>
-                <li>Elements heavier than iron are produced in supernovae and neutron star mergers.</li>
-                <li>Red dwarfs are the most common stars in the galaxy, while O-type are rare but very luminous.</li>
-            </ul>
-        </div>
-    </aside>
+  <h2>Quick Facts</h2>
+  <ul>
+    <li>Spectral type: G2V</li>
+    <li>Mean radius: ~696,340 km</li>
+    <li>Mass: ~1.989 × 10<sup>30</sup> kg</li>
+    <li>Surface temperature (photosphere): ~5,780 K</li>
+  </ul>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <p><small>Sources: NASA Solar Dynamics Observatory, ESA, peer-reviewed heliophysics literature.</small></p>
+</div>
 
-    <script>
-        // 1. Scene Setup
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        document.body.appendChild(renderer.domElement);
+<script src="https://cdn.jsdelivr.net/npm/three@0.124.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.124.0/examples/js/controls/OrbitControls.js"></script>
 
-        // 2. Star Data Configurations
-        const starTypes = {
-            'M': { 
-                name: 'Red Dwarf (Proxima Centauri)', 
-                color: 0xff3300, 
-                glowColor: 0xff1100,
-                colorName: 'Red',
-                temp: '~3,000 K',
-                lifespan: 'Trillions yrs',
-                size: 0.6, 
-                desc: "Small, cool, and extremely long-lived. The most common type of star in the universe.",
-                rowId: 'row-m'
-            },
-            'G': { 
-                name: 'Yellow Dwarf (The Sun)', 
-                color: 0xffdd00, 
-                glowColor: 0xffaa00,
-                colorName: 'Yellow',
-                temp: '~5,800 K',
-                lifespan: '10 Billion yrs',
-                size: 1.0, 
-                desc: "A medium-sized star. Bright enough to warm planets, stable enough to allow life to evolve.",
-                rowId: 'row-g'
-            },
-            'O': { 
-                name: 'Blue Giant (Rigel)', 
-                color: 0x00aaff, 
-                glowColor: 0x0055ff,
-                colorName: 'Blue',
-                temp: '~30,000+ K',
-                lifespan: '~10 Million yrs',
-                size: 2.2, 
-                desc: "Massive, incredibly hot, and short-lived. They burn through their fuel furiously.",
-                rowId: 'row-o'
-            }
-        };
+<script>
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 5000);
+camera.position.set(0, 2, 10);
 
-        // 3. Create the Core Sun (The solid sphere)
-        const geometry = new THREE.SphereGeometry(2, 64, 64);
-        const material = new THREE.MeshBasicMaterial({ color: 0xffdd00 });
-        const sun = new THREE.Mesh(geometry, material);
-        scene.add(sun);
+const viewer = document.getElementById('viewer');
 
-        // 4. Create the Glow Atmosphere (Custom Shader)
-        // This creates a fuzzy halo that always faces the camera
-        const vertexShader = `
-            varying vec3 vNormal;
-            void main() {
-                vNormal = normalize(normalMatrix * normal);
-                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-            }
-        `;
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(viewer.clientWidth, viewer.clientHeight);
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.outputEncoding = THREE.sRGBEncoding;
+renderer.domElement.style.display = 'block';
+viewer.appendChild(renderer.domElement);
 
-        const fragmentShader = `
-            varying vec3 vNormal;
-            uniform vec3 color;
-            void main() {
-                float intensity = pow(0.6 - dot(vNormal, vec3(0, 0, 1.0)), 4.0);
-                gl_FragColor = vec4(color, 1.0) * intensity;
-            }
-        `;
+// Ensure camera uses viewer aspect ratio
+camera.aspect = viewer.clientWidth / viewer.clientHeight;
+camera.updateProjectionMatrix();
 
-        const glowMaterial = new THREE.ShaderMaterial({
-            uniforms: {
-                color: { value: new THREE.Color(0xffaa00) }
-            },
-            vertexShader: vertexShader,
-            fragmentShader: fragmentShader,
-            side: THREE.BackSide,
-            blending: THREE.AdditiveBlending,
-            transparent: true
-        });
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
 
-        const sunGlow = new THREE.Mesh(
-            new THREE.SphereGeometry(2.6, 64, 64), // Slightly larger than sun
-            glowMaterial
-        );
-        scene.add(sunGlow);
+scene.add(new THREE.AmbientLight(0x222222));
+const sunLight = new THREE.PointLight(0xffffff, 5, 0);
+scene.add(sunLight);
 
-        // Add Stars to background
-        const starGeo = new THREE.BufferGeometry();
-        const starCount = 2000;
-        const starPos = new Float32Array(starCount * 3);
-        for(let i=0; i<starCount*3; i++) {
-            starPos[i] = (Math.random() - 0.5) * 600;
-        }
-        starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
-        const starMat = new THREE.PointsMaterial({color: 0xffffff, size: 0.2});
-        const stars = new THREE.Points(starGeo, starMat);
-        scene.add(stars);
+const loader = new THREE.TextureLoader();
 
-        // Camera Position
-        camera.position.z = 7;
+const sunTextures = [
+  'https://tse2.mm.bing.net/th/id/OIP.fOOoRbs8pnLd1mYP1HfeHwHaDt?rs=1&pid=ImgDetMain&o=7&rm=3',
+  'https://cdn.mos.cms.futurecdn.net/6DxQN3KLyEAMjsF5i5GNAL-320-80.png', // Red Dwarf texture
+  'https://th.bing.com/th/id/OIP.MZnPDCFiIJSOt_Z2oJOBzQHaDt?o=7rm=3&rs=1&pid=ImgDetMain&o=7&rm=3' // Blue Giant texture online
+];
 
-        // 5. Interaction Functions
-        function changeStar(type) {
-            const data = starTypes[type];
-            
-            // Animate properties (smooth transition could be added with Tweening, but direct for now)
-            material.color.setHex(data.color);
-            glowMaterial.uniforms.color.value.setHex(data.glowColor);
-            
-            // Update Size
-            sun.scale.setScalar(data.size);
-            sunGlow.scale.setScalar(data.size);
+let sun = createSun(sunTextures[0], 3);
+let targetTextureIndex = 0;
+let transitionProgress = 1;
+let oldSun = null;
 
-            // Update UI Text
-            document.getElementById('star-name').innerText = data.name;
-            document.getElementById('star-desc').innerText = data.desc;
+function createSun(textureURL, size) {
+  const tex = loader.load(textureURL);
+  const radius = size !== undefined ? size : 3;
+  const mesh = new THREE.Mesh(
+    new THREE.SphereGeometry(radius, 128, 128),
+    new THREE.MeshStandardMaterial({
+      map: tex,
+      emissive: 0xffffff,
+      emissiveMap: tex,
+      emissiveIntensity: 2,
+      roughness: 0.1,
+      metalness: 0.0,
+      transparent: true
+    })
+  );
+  scene.add(mesh);
+  sunLight.position.copy(mesh.position);
+  return mesh;
+}
 
-            // Highlight Table Row
-            document.querySelectorAll('tbody tr').forEach(r => r.classList.remove('highlight'));
-            document.getElementById(data.rowId).classList.add('highlight');
+function switchSun(index) {
+  if(index === targetTextureIndex) return;
+  oldSun = sun;
+  targetTextureIndex = index;
+  // Make Red Dwarf smaller, Blue Giant larger
+  let size = 3;
+  if(index === 1) size = 1.5;
+  if(index === 2) size = 4.5;
+  sun = createSun(sunTextures[index], size);
+  transitionProgress = 0;
+}
 
-            // Highlight Button (robust selection by onclick attribute)
-            document.querySelectorAll('.controls button').forEach(b => b.classList.remove('active'));
-            const btn = document.querySelector(`.controls button[onclick="changeStar('${type}')"]`);
-            if (btn) btn.classList.add('active');
+// Stars background
+const starsGeo = new THREE.BufferGeometry();
+const positions = new Float32Array(12000 * 3);
+for (let i = 0; i < positions.length; i++) positions[i] = (Math.random() - 0.5) * 4000;
+starsGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+scene.add(new THREE.Points(starsGeo, new THREE.PointsMaterial({ size: 0.7, color: 0xffffff })));
 
-            // Update bottom info panel to reflect selected star
-            updateBottomInfo(type);
-        }
+function animate() {
+  requestAnimationFrame(animate);
 
-        // Toggle Panel
-        function toggleInfo() {
-            document.getElementById('info-panel').classList.toggle('expanded');
-        }
-        // Prevent closing when clicking inside the content
-        document.getElementById('info-content').addEventListener('click', function(e) {
-            e.stopPropagation();
-        });
+  sun.rotation.y += 0.0005;
+  if(oldSun && transitionProgress < 1) {
+    transitionProgress += 0.1;
+    sun.material.opacity = transitionProgress;
+    oldSun.material.opacity = 1 - transitionProgress;
+    if(transitionProgress >= 1) {
+      scene.remove(oldSun);
+      oldSun = null;
+    }
+  }
 
-        // Bottom info toggle and updater
-        const infoBottomEl = document.getElementById('info-bottom');
-        const infoToggleBtn = document.getElementById('infoToggle');
-        if (infoToggleBtn) {
-            infoToggleBtn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                infoBottomEl.classList.toggle('collapsed');
-                const expanded = !infoBottomEl.classList.contains('collapsed');
-                infoToggleBtn.innerText = expanded ? '▲' : '▼';
-                infoToggleBtn.title = expanded ? 'Collapse panel' : 'Expand panel';
-                infoToggleBtn.setAttribute('aria-expanded', expanded);
-            });
-        }
+  controls.update();
+  renderer.render(scene, camera);
+}
 
-        function updateBottomInfo(type) {
-            const data = starTypes[type];
-            if (!data) return;
-            document.getElementById('paramClass').textContent = data.name;
-            document.getElementById('paramColor').textContent = data.colorName || '—';
-            document.getElementById('paramTemp').textContent = data.temp || '—';
-            document.getElementById('paramLifespan').textContent = data.lifespan || '—';
+animate();
 
-            // also update the brief summary to include the selected star's type
-            const summary = document.getElementById('info-summary');
-            if (summary) summary.textContent = `${data.name} — ${data.desc}`;
-        }
-
-        // Initialize bottom info with default 'G' star
-        updateBottomInfo('G');
-
-        // 6. Animation Loop
-        function animate() {
-            requestAnimationFrame(animate);
-
-            // Rotate Sun
-            sun.rotation.y += 0.002;
-            
-            // Pulse Effect
-            const time = Date.now() * 0.001;
-            sunGlow.scale.setScalar(sun.scale.x + Math.sin(time) * 0.02);
-
-            renderer.render(scene, camera);
-        }
-        animate();
-
-        // Handle Resize
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-    </script>
+window.addEventListener('resize', () => {
+  renderer.setSize(viewer.clientWidth, viewer.clientHeight);
+  camera.aspect = viewer.clientWidth / viewer.clientHeight;
+  camera.updateProjectionMatrix();
+});
+</script>
 </body>
 </html>
